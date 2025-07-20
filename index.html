@@ -22,17 +22,31 @@
         #canvas {
             transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
+        /* UPDATED: Changed pointer from triangle to a circle */
         .pointer {
             position: absolute;
             top: 50%;
             left: 50%;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #ff8a8a, #f56565);
+            border: 5px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        .pointer::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 40px solid #f56565;
-            transform: translate(-50%, -100%) rotate(180deg);
-            z-index: 10;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid white;
         }
         .modal-bg {
             background-color: rgba(0,0,0,0.7);
@@ -96,14 +110,6 @@
             <button id="spin-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-lg transition-transform transform hover:scale-105 disabled:bg-gray-500 disabled:cursor-not-allowed">
                 <span data-lang-en="SPIN" data-lang-zh="开始抽奖">SPIN</span> (<span id="chances-left">0</span> <span data-lang-en="chances left" data-lang-zh="次机会">chances left</span>)
             </button>
-            <div class="mt-6">
-                <p class="mb-2" data-lang-en="Share to get a RM2 cash voucher!" data-lang-zh="成功分享可获得RM2现金券！">Share to get a RM2 cash voucher!</p>
-                <div class="flex justify-center space-x-4">
-                    <button onclick="share('facebook')" class="bg-blue-800 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg></button>
-                    <button onclick="share('whatsapp')" class="bg-green-500 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.902-.539-5.586-1.551l-6.262 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.447-4.435-9.884-9.888-9.884-5.448 0-9.886 4.434-9.889 9.884-.001 2.225.651 4.315 1.731 6.086l.287.468-1.172 4.284 4.387-1.152.434.257z"/></svg></button>
-                    <button onclick="share('copy')" class="bg-gray-500 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -112,13 +118,28 @@
         <div class="bg-gray-800 text-white rounded-lg shadow-2xl p-8 max-w-sm mx-auto text-center">
             <h3 id="modal-title" class="text-3xl font-bold mb-4"></h3>
             <p id="modal-text" class="text-lg mb-6"></p>
-            <button id="modal-close-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg" data-lang-en="Close" data-lang-zh="关闭">Close</button>
+            
+            <!-- Share section moved here -->
+            <div id="share-section" class="mt-6 pt-4 border-t border-gray-600">
+                <p class="mb-3 text-sm" data-lang-en="Share to get a RM2 cash voucher!" data-lang-zh="成功分享可获得RM2现金券！">Share to get a RM2 cash voucher!</p>
+                <div class="flex justify-center space-x-4">
+                    <!-- Facebook -->
+                    <button onclick="share('facebook')" class="bg-blue-800 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg></button>
+                    <!-- Instagram -->
+                    <button onclick="share('instagram')" class="bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.225-.149-4.771-1.664-4.919-4.919-.058-1.265-.069-1.645-.069-4.849 0-3.204.012-3.584.069-4.849.149-3.225 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/></svg></button>
+                    <!-- Copy & WhatsApp -->
+                    <button onclick="share('copy_whatsapp')" class="bg-gray-500 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+                </div>
+            </div>
+
+            <button id="modal-close-btn" class="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg" data-lang-en="Close" data-lang-zh="关闭">Close</button>
         </div>
     </div>
 
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- IMPORTANT ---
@@ -137,6 +158,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         // Language data
         const langData = {
@@ -178,7 +200,8 @@
                 "You won a": "You won a",
                 "Better luck next time!": "Better luck next time!",
                 "You get another free spin!": "You get another free spin!",
-                "Copied to clipboard!": "Copied to clipboard!",
+                "Copied to clipboard! And opening WhatsApp...": "Copied to clipboard! And opening WhatsApp...",
+                "Link copied! Please share it on Instagram.": "Link copied! Please share it on Instagram.",
                 "User already exists. Loading your data...": "User already exists. Loading your data...",
                 "Registration successful!": "Registration successful!",
                 "Please fill in required fields.": "Please fill in required fields.",
@@ -209,8 +232,8 @@
                 "Online Voucher RM50": "RM50 线上券",
                 "Free 660ml Bottle": "免费660ml瓶装",
                 "1602 Pen": "1602纪念笔",
-                "1602 Cooler Bag": "1602保冷袋",
-                "1602 Mug": "1602纪念酒杯",
+                "Cooler Bag": "保冷袋",
+                "1602 Mug": "纪念酒杯",
                 "Thank You": "谢谢参与",
                 "Spin Again!": "再来一次！",
                  // Modal Titles
@@ -221,7 +244,8 @@
                 "You won a": "您抽中了",
                 "Better luck next time!": "祝您下次好运！",
                 "You get another free spin!": "您获得了一次额外抽奖机会！",
-                "Copied to clipboard!": "已复制到剪贴板！",
+                "Copied to clipboard! And opening WhatsApp...": "已复制链接！正在打开WhatsApp...",
+                "Link copied! Please share it on Instagram.": "已复制链接！请到Instagram分享。",
                 "User already exists. Loading your data...": "用户已存在，正在加载您的数据...",
                 "Registration successful!": "注册成功！",
                 "Please fill in required fields.": "请填写必填项。",
@@ -270,14 +294,14 @@
 
         const numSegments = prizes.length;
         const anglePerSegment = 2 * Math.PI / numSegments;
-        let currentRotation = 0;
         let isSpinning = false;
         let currentUser = null;
         let unsubscribeUser;
 
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = '16px Poppins';
+            // UPDATED: Smaller font size
+            ctx.font = 'bold 14px Poppins';
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
 
@@ -295,6 +319,12 @@
                 
                 // Draw text
                 ctx.fillStyle = 'white';
+                // UPDATED: Added shadow for better readability
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
                 ctx.translate(200, 200);
                 ctx.rotate(startAngle + anglePerSegment / 2);
                 ctx.fillText(langData[currentLang][prize.text] || prize.text, 120, 0);
@@ -309,7 +339,6 @@
                 if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     el.placeholder = key;
                 } else {
-                    // Handle elements with child nodes like the spin button
                     const textNode = Array.from(el.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
                     if (textNode) {
                         textNode.textContent = key;
@@ -318,9 +347,8 @@
                     }
                 }
             });
-            // Special cases
             updateChancesText(parseInt(chancesLeftSpan.textContent));
-            drawWheel(); // Redraw wheel with new language
+            drawWheel();
             document.getElementById('lang-en').classList.toggle('bg-blue-500', lang === 'en');
             document.getElementById('lang-en').classList.toggle('bg-gray-600', lang !== 'en');
             document.getElementById('lang-zh').classList.toggle('bg-blue-500', lang === 'zh');
@@ -329,13 +357,6 @@
         
         document.getElementById('lang-en').addEventListener('click', () => switchLanguage('en'));
         document.getElementById('lang-zh').addEventListener('click', () => switchLanguage('zh'));
-
-
-        function getPrizeFromAngle(angle) {
-            const normalizedAngle = (angle % 360 + 360) % 360;
-            const prizeIndex = Math.floor(normalizedAngle / (360 / numSegments));
-            return prizes[prizeIndex];
-        }
         
         function getPrizeFromPercentage() {
             let rand = Math.random() * 100;
@@ -364,7 +385,6 @@
             
             setTimeout(async () => {
                 isSpinning = false;
-                spinBtn.disabled = false;
                 canvas.style.transition = 'none';
                 const currentTransform = canvas.style.transform;
                 const currentAngle = parseFloat(currentTransform.replace(/[^0-9.-]/g, ''));
@@ -381,7 +401,7 @@
             let newChances = currentUser.drawChances - 1;
 
             if (prize.text === "Spin Again!") {
-                newChances += 1; // No net change in chances, but we log the spin
+                newChances += 1;
                 showResult(
                     langData[currentLang]["Awesome!"],
                     langData[currentLang]["You get another free spin!"]
@@ -396,7 +416,6 @@
                 }
             }
             
-            // Update user data in Firestore
             const updatedPrizes = currentUser.prizesWon || [];
             updatedPrizes.push({ prize: prize.text, timestamp: new Date() });
 
@@ -426,16 +445,14 @@
         function setupUserSession(userData) {
             currentUser = userData;
             userNameDisplay.textContent = currentUser.name;
-            updateChancesText(currentUser.drawChances);
-            spinBtn.disabled = currentUser.drawChances <= 0;
+            updateChancesText(userData.drawChances);
+            spinBtn.disabled = userData.drawChances <= 0;
 
-            // Show wheel page
             landingPage.classList.add('hidden');
             registerPage.classList.add('hidden');
             wheelPage.classList.remove('hidden');
 
-            // Setup real-time listener for chances
-            if (unsubscribeUser) unsubscribeUser(); // Unsubscribe from previous listener
+            if (unsubscribeUser) unsubscribeUser();
             unsubscribeUser = onSnapshot(doc(db, "users", currentUser.phone), (doc) => {
                 if (doc.exists()) {
                     currentUser = { phone: doc.id, ...doc.data() };
@@ -445,7 +462,7 @@
             });
         }
 
-        registerForm.addEventListener('submit', async (e) => {
+        async function handleRegistration(e) {
             e.preventDefault();
             const name = document.getElementById('name').value.trim();
             const phone = document.getElementById('phone').value.trim();
@@ -477,15 +494,9 @@
                 alert(langData[currentLang]["Registration successful!"]);
                 setupUserSession(newUser);
             }
-        });
-
-        // Page switching logic
-        document.getElementById('show-register-btn').addEventListener('click', () => {
-            landingPage.classList.add('hidden');
-            registerPage.classList.remove('hidden');
-        });
+        }
         
-        // Share functionality
+        // UPDATED: Share function logic
         window.share = function(platform) {
             const url = window.location.href;
             const text = "Join the 1602 Lucky Draw and win amazing prizes!";
@@ -494,34 +505,57 @@
             switch(platform) {
                 case 'facebook':
                     shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+                    window.open(shareUrl, '_blank');
                     break;
-                case 'whatsapp':
-                    shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
-                    break;
-                case 'copy':
+                case 'instagram':
                     navigator.clipboard.writeText(url).then(() => {
-                        alert(langData[currentLang]["Copied to clipboard!"]);
+                        alert(langData[currentLang]["Link copied! Please share it on Instagram."]);
                     });
-                    return;
+                    break;
+                case 'copy_whatsapp':
+                    navigator.clipboard.writeText(url).then(() => {
+                        alert(langData[currentLang]["Copied to clipboard! And opening WhatsApp..."]);
+                        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
+                        window.open(shareUrl, '_blank');
+                    });
+                    break;
             }
-            window.open(shareUrl, '_blank');
         }
         
-        // Initial setup
-        function init() {
-            // Set QR code to current URL
-            const qrCodeImg = document.getElementById('qr-code');
-            if (window.location.href !== 'about:blank') {
-                 qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`;
-            } else {
-                 qrCodeImg.alt = "QR Code will be generated from deployed URL";
+        async function initApp() {
+            try {
+                await signInAnonymously(auth);
+                console.log("Signed in anonymously to access Firestore.");
+
+                const qrCodeImg = document.getElementById('qr-code');
+                if (window.location.href !== 'about:blank') {
+                     qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`;
+                } else {
+                     qrCodeImg.alt = "QR Code will be generated from deployed URL";
+                }
+               
+                drawWheel();
+                switchLanguage('en');
+
+                registerForm.addEventListener('submit', handleRegistration);
+                document.getElementById('show-register-btn').addEventListener('click', () => {
+                    landingPage.classList.add('hidden');
+                    registerPage.classList.remove('hidden');
+                });
+                spinBtn.addEventListener('click', spin);
+
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                document.getElementById('app').innerHTML = `
+                    <div class="text-center p-4 bg-red-900 text-white rounded-lg">
+                        <h2 class="text-xl font-bold">Connection Error</h2>
+                        <p>Could not connect to the lucky draw service. Please try again later.</p>
+                    </div>
+                `;
             }
-           
-            drawWheel();
-            switchLanguage('en'); // Default language
         }
 
-        init();
+        initApp();
     </script>
 </body>
 </html>
