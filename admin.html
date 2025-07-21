@@ -10,6 +10,22 @@
         body {
             font-family: 'Poppins', sans-serif;
         }
+        .modal-bg {
+            background-color: rgba(0,0,0,0.6);
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -34,9 +50,13 @@
 
         <!-- All Users Section -->
         <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                 <h2 class="text-xl font-semibold text-gray-700">All Participants</h2>
-                <button id="export-csv" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm">Export to CSV</button>
+                <div class="flex gap-2">
+                    <!-- ✨ Gemini Summary Button -->
+                    <button id="gemini-summary-btn" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition text-sm">✨ Generate Event Summary</button>
+                    <button id="export-csv" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm">Export to CSV</button>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-600">
@@ -53,6 +73,23 @@
                         <!-- User data will be inserted here -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✨ Gemini Summary Modal -->
+    <div id="summary-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-2xl w-full mx-auto text-left">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">✨ AI Event Summary</h3>
+                <button id="summary-modal-close-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <div id="summary-content" class="text-gray-700 space-y-2 prose max-w-none">
+                <!-- AI content will be injected here -->
+            </div>
+            <div id="summary-loading" class="hidden">
+                <div class="loader"></div>
+                <p class="text-center text-gray-600">AI is analyzing the data, please wait...</p>
             </div>
         </div>
     </div>
@@ -89,8 +126,85 @@
         const searchResultsDiv = document.getElementById('search-results');
         const resultContainer = document.getElementById('result-container');
         const exportCsvBtn = document.getElementById('export-csv');
+        const geminiSummaryBtn = document.getElementById('gemini-summary-btn');
+        const summaryModal = document.getElementById('summary-modal');
+        const summaryModalCloseBtn = document.getElementById('summary-modal-close-btn');
+        const summaryContent = document.getElementById('summary-content');
+        const summaryLoading = document.getElementById('summary-loading');
         
         let allUsersData = [];
+
+        // --- ✨ GEMINI API INTEGRATION ---
+        async function callGemini(prompt) {
+            summaryLoading.classList.remove('hidden');
+            summaryContent.classList.add('hidden');
+
+            const apiKey = ""; // The platform will inject the key
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API call failed: ${response.status}`);
+                
+                const result = await response.json();
+                let text = "Sorry, the AI analysis failed. Please try again.";
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    text = result.candidates[0].content.parts[0].text;
+                }
+                return text;
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return "An error occurred while contacting the AI. Please check the console.";
+            } finally {
+                summaryLoading.classList.add('hidden');
+                summaryContent.classList.remove('hidden');
+            }
+        }
+
+        async function generateSummary() {
+            if (allUsersData.length === 0) {
+                alert("No participant data available to analyze.");
+                return;
+            }
+            summaryModal.classList.remove('hidden');
+            
+            // Sanitize data for the prompt
+            const cleanData = allUsersData.map(user => ({
+                joinDate: user.joinDate?.toDate()?.toISOString(),
+                prizesWon: user.prizesWon?.map(p => p.prize) || []
+            }));
+
+            const prompt = `
+                You are a data analyst for the "1602 Lucky Draw" event. Based on the following JSON data of participants, provide a concise summary of the event's performance in Chinese.
+
+                The summary should be well-structured and include:
+                1.  **总体表现 (Overall Performance):** State the total number of participants.
+                2.  **用户参与时段分析 (Participation Time Analysis):** Briefly analyze when users signed up. Identify any peak days or times if a pattern exists.
+                3.  **最受欢迎奖品 (Most Popular Prizes):** List the top 3 most frequently won prizes, excluding 'Thank You' and 'Spin Again!'. Show the count for each.
+                4.  **可行性建议 (Actionable Suggestion):** Provide one actionable suggestion for the next event to improve engagement or marketing, based on the data.
+
+                Format the response clearly using Markdown-style headers (e.g., using bold text).
+
+                Here is the participant data:
+                ${JSON.stringify(cleanData)}
+            `;
+
+            const summaryText = await callGemini(prompt);
+            // Basic Markdown to HTML conversion
+            summaryContent.innerHTML = summaryText
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br/>');
+        }
+        // --- END OF GEMINI API INTEGRATION ---
+
 
         function renderTable(users) {
             usersTableBody.innerHTML = ''; // Clear existing table
@@ -100,8 +214,8 @@
                 const joinDate = user.joinDate && user.joinDate.toDate ? user.joinDate.toDate().toLocaleString() : 'N/A';
                 const row = `
                     <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 font-medium text-gray-900">${user.name}</td>
-                        <td class="px-6 py-4">${user.phone}</td>
+                        <td class="px-6 py-4 font-medium text-gray-900">${user.name || 'N/A'}</td>
+                        <td class="px-6 py-4">${user.phone || 'N/A'}</td>
                         <td class="px-6 py-4 font-bold text-blue-600">${user.drawChances}</td>
                         <td class="px-6 py-4">${joinDate}</td>
                         <td class="px-6 py-4">${prizesWon || 'No prizes yet'}</td>
@@ -114,7 +228,6 @@
         async function fetchUsers() {
             onSnapshot(usersCollection, (snapshot) => {
                 const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sort users by join date, newest first
                 users.sort((a, b) => (b.joinDate?.toDate() || 0) - (a.joinDate?.toDate() || 0));
                 renderTable(users);
             }, (error) => {
@@ -186,7 +299,6 @@
                 button.classList.remove('bg-green-500');
                 button.classList.add('bg-blue-500');
                 
-                // Refresh the search result to show updated chance count
                 setTimeout(() => {
                    searchUser();
                 }, 1000);
@@ -199,28 +311,55 @@
             }
         }
         
+        // UPDATED: exportToCSV function
         function exportToCSV() {
             if (allUsersData.length === 0) {
                 alert("No data to export.");
                 return;
             }
             
-            const headers = ['Name', 'Phone', 'Email', 'Address', 'Draw Chances', 'Join Date', 'Prizes Won'];
+            // Define all possible prizes to create columns
+            const prizeNames = [
+                "Cash Voucher RM5", "Online Voucher RM10", "Free 660ml Bottle", 
+                "1602 Mug", "Spin Again!", "Online Voucher RM20", "1602 Pen", 
+                "Wine Card", "Cooler Bag", "Online Voucher RM50", "Thank You"
+            ];
+
+            const baseHeaders = ['Name', 'Phone', 'Email', 'Address', 'Draw Chances', 'Join Date'];
+            const headers = [...baseHeaders, ...prizeNames];
             const csvRows = [headers.join(',')];
 
             allUsersData.forEach(user => {
+                // Count prizes for each user
+                const prizeCounts = prizeNames.reduce((acc, prize) => {
+                    acc[prize] = 0;
+                    return acc;
+                }, {});
+
+                if (user.prizesWon) {
+                    user.prizesWon.forEach(p => {
+                        if (p && p.prize && prizeCounts.hasOwnProperty(p.prize)) {
+                            prizeCounts[p.prize]++;
+                        }
+                    });
+                }
+
                 const joinDate = user.joinDate && user.joinDate.toDate ? user.joinDate.toDate().toISOString() : 'N/A';
-                const prizes = user.prizesWon ? user.prizesWon.map(p => `"${p.prize.replace(/"/g, '""')}"`).join('; ') : '';
-                const row = [
-                    `"${user.name.replace(/"/g, '""')}"`,
-                    `"${user.phone}"`,
+                
+                const baseRow = [
+                    `"${(user.name || '').replace(/"/g, '""')}"`,
+                    `"${user.phone || ''}"`,
                     `"${user.email || ''}"`,
                     `"${(user.address || '').replace(/"/g, '""')}"`,
-                    user.drawChances,
-                    `"${joinDate}"`,
-                    `"${prizes}"`
-                ].join(',');
-                csvRows.push(row);
+                    user.drawChances || 0,
+                    `"${joinDate}"`
+                ];
+
+                // Add prize counts to the row in the correct order
+                const prizeRow = prizeNames.map(prizeName => prizeCounts[prizeName]);
+                
+                const fullRow = [...baseRow, ...prizeRow];
+                csvRows.push(fullRow.join(','));
             });
 
             const csvString = csvRows.join('\n');
@@ -228,7 +367,7 @@
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', 'lucky_draw_participants.csv');
+            link.setAttribute('download', 'lucky_draw_participants_detailed.csv');
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -239,7 +378,6 @@
             try {
                 console.log("Initializing Admin Panel...");
                 
-                // --- MODIFICATION START ---
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
@@ -250,15 +388,13 @@
                     }
                 } catch (authError) {
                     if (authError.code === 'auth/custom-token-mismatch') {
-                        console.warn("Custom token mismatch. This is likely an environment configuration issue. Falling back to anonymous sign-in.");
+                        console.warn("Custom token mismatch. Falling back to anonymous sign-in.");
                         await signInAnonymously(auth);
                         console.log("Signed in anonymously as a fallback.");
                     } else {
-                        // For other auth errors, re-throw to be caught by the outer catch block
                         throw authError;
                     }
                 }
-                // --- MODIFICATION END ---
                 
                 await fetchUsers();
 
@@ -268,19 +404,20 @@
                 });
                 exportCsvBtn.addEventListener('click', exportToCSV);
                 resultContainer.addEventListener('click', handleAddChanceClick);
+                geminiSummaryBtn.addEventListener('click', generateSummary);
+                summaryModalCloseBtn.addEventListener('click', () => summaryModal.classList.add('hidden'));
 
             } catch(error) {
                 console.error("Fatal Error Initializing Admin Panel:", error);
                 document.body.innerHTML = `<div class="p-8 text-center text-red-600 bg-red-100 rounded-lg m-4">
                     <h2 class="text-xl font-bold">Connection Error</h2>
-                    <p>Could not connect to the database due to a permission error.</p>
+                    <p>Could not connect to the database.</p>
                     <p class="text-sm mt-2">Please check your Firestore security rules or authentication setup.</p>
                     <p class="text-xs mt-4 font-mono">Error: ${error.message}</p>
                 </div>`;
             }
         }
 
-        // Start the application
         initializeAdminPanel();
     </script>
 </body>
