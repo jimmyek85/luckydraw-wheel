@@ -26,6 +26,12 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Tab styles */
+        .tab-btn.active {
+            border-color: #4f46e5;
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -33,51 +39,94 @@
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">1602 Lucky Draw - Admin Panel</h1>
 
-        <!-- Search Section -->
-        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Draw Chance</h2>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <input type="text" id="search-input" placeholder="Search by Name or Phone..." class="flex-grow w-full sm:w-auto p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button id="search-btn" class="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">Search</button>
-            </div>
-        </div>
-        
-        <!-- Search Results -->
-        <div id="search-results" class="bg-white p-6 rounded-lg shadow-md mb-6 hidden">
-             <h3 class="text-lg font-semibold mb-4 text-gray-700">Search Result</h3>
-             <div id="result-container"></div>
+        <!-- Tab Navigation -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex space-x-4" aria-label="Tabs">
+                <button class="tab-btn active font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-t-lg border-b-2 border-transparent" data-tab="dashboard">用户管理</button>
+                <button class="tab-btn font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-t-lg border-b-2 border-transparent" data-tab="announcement">活动公布栏</button>
+                <button class="tab-btn font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-t-lg border-b-2 border-transparent" data-tab="knowledge">AI 知识库</button>
+            </nav>
         </div>
 
-        <!-- All Users Section -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                <h2 class="text-xl font-semibold text-gray-700">All Participants</h2>
-                <div class="flex gap-2">
-                    <!-- ✨ Gemini Summary Button -->
-                    <button id="gemini-summary-btn" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition text-sm">✨ Generate Event Summary</button>
-                    <button id="export-csv" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm">Export to CSV</button>
+        <!-- Tab Content -->
+        <div id="tab-content">
+            <!-- Dashboard / User Management -->
+            <div id="dashboard-tab" class="tab-pane active">
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">添加/搜索用户</h2>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="text" id="search-input" placeholder="按名字或电话搜索..." class="flex-grow w-full sm:w-auto p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="search-btn" class="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition">搜索</button>
+                        <button id="add-user-btn" class="w-full sm:w-auto bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition">添加用户</button>
+                    </div>
+                </div>
+                
+                <div id="search-results" class="bg-white p-6 rounded-lg shadow-md mb-6 hidden">
+                     <h3 class="text-lg font-semibold mb-4 text-gray-700">搜索结果</h3>
+                     <div id="result-container"></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                        <h2 class="text-xl font-semibold text-gray-700">所有参与者</h2>
+                        <div class="flex gap-2 flex-wrap justify-center">
+                            <button id="copy-phones-btn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition text-sm disabled:opacity-50" disabled>复制选中手机号</button>
+                            <button id="copy-emails-btn" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition text-sm disabled:opacity-50" disabled>复制选中邮箱</button>
+                            <button id="gemini-summary-btn" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition text-sm">✨ 生成总结</button>
+                            <button id="export-csv" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm">导出 CSV</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-2 py-3"><input type="checkbox" id="select-all-users"></th>
+                                    <th scope="col" class="px-6 py-3">名字</th>
+                                    <th scope="col" class="px-6 py-3">电话</th>
+                                    <th scope="col" class="px-6 py-3">机会次数</th>
+                                    <th scope="col" class="px-6 py-3">加入日期</th>
+                                    <th scope="col" class="px-6 py-3">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-600">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">Name</th>
-                            <th scope="col" class="px-6 py-3">Phone</th>
-                            <th scope="col" class="px-6 py-3">Chances</th>
-                            <th scope="col" class="px-6 py-3">Join Date</th>
-                            <th scope="col" class="px-6 py-3">Prizes Won</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table-body">
-                        <!-- User data will be inserted here -->
-                    </tbody>
-                </table>
+
+            <!-- Announcement Tab -->
+            <div id="announcement-tab" class="tab-pane hidden">
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">活动公布栏</h2>
+                    <p class="text-sm text-gray-500 mb-4">在此处发布的内容，将会以弹窗形式在客户端首页展示给新进入的用户。清空并发布，即可关闭弹窗。</p>
+                    <textarea id="announcement-text" class="w-full h-40 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="输入您的公告内容..."></textarea>
+                    <button id="publish-announcement-btn" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition">发布公告</button>
+                 </div>
+            </div>
+
+            <!-- AI Knowledge Base Tab -->
+            <div id="knowledge-tab" class="tab-pane hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">AI 知识库</h2>
+                    <p class="text-sm text-gray-500 mb-4">在这里输入关于1602品牌、产品、活动优惠等信息。客户端的AI功能将会读取这些信息，以提供更精准、更具品牌特色的回复。</p>
+                    <textarea id="knowledge-text" class="w-full h-64 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例如：1602经典原味(Lager)是我们最畅销的啤酒，口感清爽，带有淡淡的麦芽香气..."></textarea>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700">上传相关图片 (功能开发中)</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                <div class="flex text-sm text-gray-600"><p class="pl-1">图片上传功能需要配置Firebase Storage</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="save-knowledge-btn" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition">保存知识库</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ✨ Gemini Summary Modal -->
+    <!-- Modals -->
     <div id="summary-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
         <div class="bg-white rounded-lg shadow-2xl p-6 max-w-2xl w-full mx-auto text-left">
             <div class="flex justify-between items-center mb-4">
@@ -93,15 +142,24 @@
             </div>
         </div>
     </div>
+    <div id="add-user-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
+    </div>
+    <div id="confirm-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-auto text-center">
+            <h3 id="confirm-modal-title" class="text-lg font-bold text-gray-800 mb-4">请确认</h3>
+            <p id="confirm-modal-text" class="text-gray-600 mb-6"></p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-modal-cancel-btn" class="px-6 py-2 rounded-md bg-gray-200 hover:bg-gray-300">取消</button>
+                <button id="confirm-modal-ok-btn" class="px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">确认</button>
+            </div>
+        </div>
+    </div>
     
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, increment, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment, query, where, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- IMPORTANT ---
-        // Using the provided Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY",
             authDomain: "deductive-smile-408711.firebaseapp.com",
@@ -111,15 +169,14 @@
             appId: "1:209601875553:web:d4a9175622134295c06420",
             measurementId: "G-R222P71DDD"
         };
-        // --- END OF FIREBASE CONFIG ---
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app); // Initialize Auth
+        const auth = getAuth(app);
         const usersCollection = collection(db, 'users');
+        const settingsCollection = collection(db, 'settings');
+        const knowledgeCollection = collection(db, 'knowledge');
 
-        // UI Elements
         const usersTableBody = document.getElementById('users-table-body');
         const searchInput = document.getElementById('search-input');
         const searchBtn = document.getElementById('search-btn');
@@ -128,13 +185,29 @@
         const exportCsvBtn = document.getElementById('export-csv');
         const geminiSummaryBtn = document.getElementById('gemini-summary-btn');
         const summaryModal = document.getElementById('summary-modal');
-        const summaryModalCloseBtn = document.getElementById('summary-modal-close-btn');
-        const summaryContent = document.getElementById('summary-content');
-        const summaryLoading = document.getElementById('summary-loading');
+        const summaryModalCloseBtn = summaryModal.querySelector('#summary-modal-close-btn');
+        const summaryContent = summaryModal.querySelector('#summary-content');
+        const summaryLoading = summaryModal.querySelector('#summary-loading');
+        const addUserModal = document.getElementById('add-user-modal');
+        const confirmModal = document.getElementById('confirm-modal');
+        const selectAllCheckbox = document.getElementById('select-all-users');
+        const copyPhonesBtn = document.getElementById('copy-phones-btn');
+        const copyEmailsBtn = document.getElementById('copy-emails-btn');
         
         let allUsersData = [];
 
-        // --- ✨ GEMINI API INTEGRATION ---
+        // Tab switching logic
+        const tabs = document.querySelectorAll('.tab-btn');
+        const panes = document.querySelectorAll('.tab-pane');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                panes.forEach(p => p.classList.add('hidden'));
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.remove('hidden');
+            });
+        });
+
         async function callGemini(prompt) {
             summaryLoading.classList.remove('hidden');
             summaryContent.classList.add('hidden');
@@ -176,7 +249,6 @@
             }
             summaryModal.classList.remove('hidden');
             
-            // Sanitize data for the prompt
             const cleanData = allUsersData.map(user => ({
                 joinDate: user.joinDate?.toDate()?.toISOString(),
                 prizesWon: user.prizesWon?.map(p => p.prize) || []
@@ -184,47 +256,44 @@
 
             const prompt = `
                 You are a data analyst for the "1602 Lucky Draw" event. Based on the following JSON data of participants, provide a concise summary of the event's performance in Chinese.
-
                 The summary should be well-structured and include:
                 1.  **总体表现 (Overall Performance):** State the total number of participants.
                 2.  **用户参与时段分析 (Participation Time Analysis):** Briefly analyze when users signed up. Identify any peak days or times if a pattern exists.
                 3.  **最受欢迎奖品 (Most Popular Prizes):** List the top 3 most frequently won prizes, excluding 'Thank You' and 'Spin Again!'. Show the count for each.
                 4.  **可行性建议 (Actionable Suggestion):** Provide one actionable suggestion for the next event to improve engagement or marketing, based on the data.
-
                 Format the response clearly using Markdown-style headers (e.g., using bold text).
-
                 Here is the participant data:
                 ${JSON.stringify(cleanData)}
             `;
 
             const summaryText = await callGemini(prompt);
-            // Basic Markdown to HTML conversion
             summaryContent.innerHTML = summaryText
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\n/g, '<br/>');
         }
-        // --- END OF GEMINI API INTEGRATION ---
-
 
         function renderTable(users) {
-            usersTableBody.innerHTML = ''; // Clear existing table
-            allUsersData = users; // Store for export
+            usersTableBody.innerHTML = '';
+            allUsersData = users;
             users.forEach(user => {
-                const prizesWon = user.prizesWon ? user.prizesWon.map(p => p.prize).join(', ') : 'None';
-                const joinDate = user.joinDate && user.joinDate.toDate ? user.joinDate.toDate().toLocaleString() : 'N/A';
-                const row = `
-                    <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 font-medium text-gray-900">${user.name || 'N/A'}</td>
-                        <td class="px-6 py-4">${user.phone || 'N/A'}</td>
-                        <td class="px-6 py-4 font-bold text-blue-600">${user.drawChances}</td>
-                        <td class="px-6 py-4">${joinDate}</td>
-                        <td class="px-6 py-4">${prizesWon || 'No prizes yet'}</td>
-                    </tr>
+                const joinDate = user.joinDate?.toDate()?.toLocaleString() || 'N/A';
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-2 py-4"><input type="checkbox" class="user-checkbox" data-phone="${user.phone || ''}" data-email="${user.email || ''}"></td>
+                    <td class="px-6 py-4 font-medium text-gray-900">${user.name || 'N/A'}</td>
+                    <td class="px-6 py-4">${user.phone || 'N/A'}</td>
+                    <td class="px-6 py-4 font-bold text-blue-600">${user.drawChances}</td>
+                    <td class="px-6 py-4">${joinDate}</td>
+                    <td class="px-6 py-4 flex items-center gap-2">
+                        <button class="delete-user-btn text-red-500 hover:text-red-700" data-id="${user.id}" data-name="${user.name || 'this user'}">删除</button>
+                        <a href="https://wa.me/${(user.phone || '').replace('+', '')}" target="_blank" class="text-green-500 hover:text-green-700">WhatsApp</a>
+                    </td>
                 `;
-                usersTableBody.innerHTML += row;
+                usersTableBody.appendChild(row);
             });
         }
-
+        
         async function fetchUsers() {
             onSnapshot(usersCollection, (snapshot) => {
                 const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -232,7 +301,7 @@
                 renderTable(users);
             }, (error) => {
                 console.error("Firestore permission error in listener:", error);
-                usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Error: Could not load data. Check console for permission errors.</td></tr>`;
+                usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 p-4">Error: Could not load data. Check console for permission errors.</td></tr>`;
             });
         }
 
@@ -280,7 +349,7 @@
                 resultContainer.appendChild(userCard);
             });
         }
-        
+
         async function handleAddChanceClick(e) {
             if (!e.target.classList.contains('add-chance-btn')) return;
             
@@ -310,19 +379,17 @@
                 button.textContent = '+1 Chance';
             }
         }
-        
-        // UPDATED: exportToCSV function
+
         function exportToCSV() {
             if (allUsersData.length === 0) {
                 alert("No data to export.");
                 return;
             }
             
-            // Define all possible prizes to create columns
             const prizeNames = [
                 "Cash Voucher RM5", "Online Voucher RM10", "Free 660ml Bottle", 
                 "1602 Mug", "Spin Again!", "Online Voucher RM20", "1602 Pen", 
-                "Wine Card", "Cooler Bag", "Online Voucher RM50", "Thank You"
+                "Wine Card", "Cooler Bag", "New 330ml Can", "Thank You"
             ];
 
             const baseHeaders = ['Name', 'Phone', 'Email', 'Address', 'Draw Chances', 'Join Date'];
@@ -330,11 +397,7 @@
             const csvRows = [headers.join(',')];
 
             allUsersData.forEach(user => {
-                // Count prizes for each user
-                const prizeCounts = prizeNames.reduce((acc, prize) => {
-                    acc[prize] = 0;
-                    return acc;
-                }, {});
+                const prizeCounts = prizeNames.reduce((acc, prize) => ({ ...acc, [prize]: 0 }), {});
 
                 if (user.prizesWon) {
                     user.prizesWon.forEach(p => {
@@ -344,7 +407,7 @@
                     });
                 }
 
-                const joinDate = user.joinDate && user.joinDate.toDate ? user.joinDate.toDate().toISOString() : 'N/A';
+                const joinDate = user.joinDate?.toDate()?.toISOString() || 'N/A';
                 
                 const baseRow = [
                     `"${(user.name || '').replace(/"/g, '""')}"`,
@@ -355,7 +418,6 @@
                     `"${joinDate}"`
                 ];
 
-                // Add prize counts to the row in the correct order
                 const prizeRow = prizeNames.map(prizeName => prizeCounts[prizeName]);
                 
                 const fullRow = [...baseRow, ...prizeRow];
@@ -363,7 +425,7 @@
             });
 
             const csvString = csvRows.join('\n');
-            const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel
+            const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
@@ -373,48 +435,201 @@
             link.click();
             document.body.removeChild(link);
         }
+        
+        // --- NEW & UPDATED FUNCTIONS ---
+
+        function updateBulkActionButtons() {
+            const selectedCount = document.querySelectorAll('.user-checkbox:checked').length;
+            copyPhonesBtn.disabled = selectedCount === 0;
+            copyEmailsBtn.disabled = selectedCount === 0;
+        }
+
+        function copySelectedData(type) {
+            const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+            if (checkboxes.length === 0) return;
+            const data = Array.from(checkboxes).map(cb => cb.dataset[type]).filter(Boolean).join(', ');
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = data;
+            textArea.style.position = "fixed";
+            textArea.style.top = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert(`${checkboxes.length} ${type}(s) copied!`);
+            } catch (err) {
+                alert(`Failed to copy ${type}s.`);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showConfirmation(text, onConfirm) {
+            const confirmModalText = document.getElementById('confirm-modal-text');
+            const confirmOkBtn = document.getElementById('confirm-modal-ok-btn');
+            const confirmCancelBtn = document.getElementById('confirm-modal-cancel-btn');
+
+            confirmModalText.textContent = text;
+            confirmModal.classList.remove('hidden');
+
+            const handleOk = () => {
+                onConfirm();
+                confirmModal.classList.add('hidden');
+                confirmOkBtn.removeEventListener('click', handleOk);
+                confirmCancelBtn.removeEventListener('click', handleCancel);
+            };
+
+            const handleCancel = () => {
+                confirmModal.classList.add('hidden');
+                confirmOkBtn.removeEventListener('click', handleOk);
+                confirmCancelBtn.removeEventListener('click', handleCancel);
+            };
+
+            confirmOkBtn.addEventListener('click', handleOk);
+            confirmCancelBtn.addEventListener('click', handleCancel);
+        }
+
+        async function deleteUser(userId, userName) {
+            showConfirmation(`确定要删除用户 "${userName}" 吗？此操作无法撤销。`, async () => {
+                try {
+                    await deleteDoc(doc(db, "users", userId));
+                    alert("用户已删除。");
+                } catch (error) {
+                    console.error("Error deleting user: ", error);
+                    alert("删除失败。");
+                }
+            });
+        }
+
+        function showAddUserModal() {
+            addUserModal.innerHTML = `
+                 <div class="bg-white rounded-lg shadow-2xl p-6 max-w-lg w-full mx-auto text-left">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">添加新用户</h3>
+                        <button id="add-user-modal-close-btn" class="text-2xl leading-none">&times;</button>
+                    </div>
+                    <form id="add-user-form" class="space-y-4">
+                        <div><label>名字:</label><input type="text" id="new-user-name" class="w-full p-2 border rounded"></div>
+                        <div><label>电话 (包含国家码, e.g., +60...):</label><input type="text" id="new-user-phone" class="w-full p-2 border rounded" required></div>
+                        <div><label>抽奖次数:</label><input type="number" id="new-user-chances" value="1" class="w-full p-2 border rounded"></div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700">保存用户</button>
+                    </form>
+                </div>
+            `;
+            addUserModal.classList.remove('hidden');
+        }
+
+        async function saveNewUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-user-name').value;
+            const phone = document.getElementById('new-user-phone').value;
+            const chances = parseInt(document.getElementById('new-user-chances').value);
+
+            if (!phone) {
+                alert("电话号码是必填项。");
+                return;
+            }
+
+            const newUser = {
+                name: name,
+                phone: phone,
+                drawChances: chances,
+                joinDate: new Date(),
+                prizesWon: []
+            };
+
+            try {
+                await setDoc(doc(db, "users", phone), newUser);
+                alert("用户添加成功！");
+                addUserModal.classList.add('hidden');
+            } catch (error) {
+                console.error("Error adding user: ", error);
+                alert("添加用户失败。");
+            }
+        }
+
+        // Announcement & Knowledge Base Functions
+        async function publishAnnouncement() {
+            const text = document.getElementById('announcement-text').value;
+            try {
+                await setDoc(doc(settingsCollection, 'announcement'), { content: text, lastUpdated: new Date() });
+                alert("公告已发布！");
+            } catch (error) {
+                console.error("Error publishing announcement: ", error);
+                alert("发布失败。");
+            }
+        }
+
+        async function saveKnowledge() {
+            const text = document.getElementById('knowledge-text').value;
+            try {
+                await setDoc(doc(knowledgeCollection, 'main'), { content: text, lastUpdated: new Date() });
+                alert("AI知识库已保存！");
+            } catch (error) {
+                console.error("Error saving knowledge base: ", error);
+                alert("保存失败。");
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const announcementDoc = await getDoc(doc(settingsCollection, 'announcement'));
+                if (announcementDoc.exists()) {
+                    document.getElementById('announcement-text').value = announcementDoc.data().content;
+                }
+                const knowledgeDoc = await getDoc(doc(knowledgeCollection, 'main'));
+                if (knowledgeDoc.exists()) {
+                    document.getElementById('knowledge-text').value = knowledgeDoc.data().content;
+                }
+            } catch(e){ console.error("Error loading settings:", e)}
+        }
+
 
         async function initializeAdminPanel() {
             try {
-                console.log("Initializing Admin Panel...");
-                
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                        console.log("Signed in with custom token.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously because no custom token was provided.");
-                    }
-                } catch (authError) {
-                    if (authError.code === 'auth/custom-token-mismatch') {
-                        console.warn("Custom token mismatch. Falling back to anonymous sign-in.");
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously as a fallback.");
-                    } else {
-                        throw authError;
-                    }
-                }
+                await signInAnonymously(auth);
                 
                 await fetchUsers();
+                await loadSettings();
 
+                // Event Listeners
                 searchBtn.addEventListener('click', searchUser);
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') searchUser();
-                });
+                searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchUser(); });
                 exportCsvBtn.addEventListener('click', exportToCSV);
-                resultContainer.addEventListener('click', handleAddChanceClick);
                 geminiSummaryBtn.addEventListener('click', generateSummary);
                 summaryModalCloseBtn.addEventListener('click', () => summaryModal.classList.add('hidden'));
+                
+                document.getElementById('add-user-btn').addEventListener('click', showAddUserModal);
+                
+                document.addEventListener('click', e => {
+                    if (e.target && e.target.id === 'add-user-modal-close-btn') addUserModal.classList.add('hidden');
+                    if (e.target && e.target.closest('#add-user-form') && e.target.tagName === 'BUTTON') {
+                        saveNewUser(e);
+                    }
+                    if (e.target && e.target.classList.contains('delete-user-btn')) {
+                        deleteUser(e.target.dataset.id, e.target.dataset.name);
+                    }
+                });
+
+                resultContainer.addEventListener('click', handleAddChanceClick);
+
+                selectAllCheckbox.addEventListener('change', (e) => {
+                    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = e.target.checked);
+                    updateBulkActionButtons();
+                });
+                usersTableBody.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('user-checkbox')) updateBulkActionButtons();
+                });
+                copyPhonesBtn.addEventListener('click', () => copySelectedData('phone'));
+                copyEmailsBtn.addEventListener('click', () => copySelectedData('email'));
+
+                document.getElementById('publish-announcement-btn').addEventListener('click', publishAnnouncement);
+                document.getElementById('save-knowledge-btn').addEventListener('click', saveKnowledge);
 
             } catch(error) {
                 console.error("Fatal Error Initializing Admin Panel:", error);
-                document.body.innerHTML = `<div class="p-8 text-center text-red-600 bg-red-100 rounded-lg m-4">
-                    <h2 class="text-xl font-bold">Connection Error</h2>
-                    <p>Could not connect to the database.</p>
-                    <p class="text-sm mt-2">Please check your Firestore security rules or authentication setup.</p>
-                    <p class="text-xs mt-4 font-mono">Error: ${error.message}</p>
-                </div>`;
+                document.body.innerHTML = `<div class="p-8 text-center text-red-600">Error: ${error.message}</div>`;
             }
         }
 
