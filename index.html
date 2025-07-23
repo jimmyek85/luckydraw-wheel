@@ -395,35 +395,438 @@
         let currentLang = 'en';
         let knowledgeBaseContent = '';
 
-        // All functions are included below, but collapsed for brevity in this view
-        // The full code is present in the immersive artifact
-        
-        async function callGemini(prompt, loadingElement, contentElement) { /* ... */ }
-        function drawWheel() { /* ... */ }
-        function switchLanguage(lang) { /* ... */ }
-        function getPrizeFromPercentage() { /* ... */ }
-        function spin() { /* ... */ }
-        async function handlePrize(prize) { /* ... */ }
-        function showResult(title, text, isThankYou = false, isOnlineVoucher = false) { /* ... */ }
-        function updateChancesText(chances) { /* ... */ }
-        function setupUserSession(userData) { /* ... */ }
-        async function handleRegistration(e) { /* ... */ }
-        function copyTextToClipboard(text) { /* ... */ }
-        window.share = function(platform) { /* ... */ }
-        function populateCountryCodes() { /* ... */ }
-        function showGenericModal(type, customContent = '') { /* ... */ }
-        async function handleBeerRecommendation(flavor) { /* ... */ }
-        function createParticles() { /* ... */ }
+        const landingPageContainer = document.getElementById('landing-page-container');
+        const registerPage = document.getElementById('register-page');
+        const wheelPage = document.getElementById('wheel-page');
+        const registerForm = document.getElementById('register-form');
+        const spinBtn = document.getElementById('spin-btn');
+        const chancesLeftSpan = document.getElementById('chances-left');
+        const userNameDisplay = document.getElementById('user-name-display');
+        const resultModal = document.getElementById('result-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const modalText = document.getElementById('modal-text');
+        const onlineVoucherInstructions = document.getElementById('online-voucher-instructions');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const geminiIdeaBtn = document.getElementById('gemini-idea-btn');
+        const geminiLoading = document.getElementById('gemini-loading');
+        const genericModal = document.getElementById('generic-modal');
+        const genericModalTitle = document.getElementById('generic-modal-title');
+        const genericModalContent = document.getElementById('generic-modal-content');
+        const genericModalCloseBtn = document.getElementById('generic-modal-close-btn');
+        const beerModal = document.getElementById('beer-modal');
+        const beerModalCloseBtn = document.getElementById('beer-modal-close-btn');
+        const beerModalContent = document.getElementById('beer-modal-content');
+        const beerLoading = document.getElementById('beer-loading');
+        const beerRecommendation = document.getElementById('beer-recommendation');
 
-        async function fetchSettings() {
-            const announcementDoc = await getDoc(doc(db, 'settings', 'announcement'));
-            if (announcementDoc.exists() && announcementDoc.data().content) {
-                showGenericModal('announcement', announcementDoc.data().content);
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const prizes = [
+            { text: "Cash Voucher RM5", color: "#fde047", percentage: 10 },
+            { text: "Thank You", color: "#4b5563", percentage: 30 },
+            { text: "Online Voucher RM10", color: "#60a5fa", percentage: 8 },
+            { text: "Free 660ml Bottle", color: "#ef4444", percentage: 16 },
+            { text: "1602 Mug", color: "#a78bfa", percentage: 8 },
+            { text: "Spin Again!", color: "#f97316", percentage: 4 },
+            { text: "Online Voucher RM20", color: "#22c55e", percentage: 8 },
+            { text: "1602 Pen", color: "#ec4899", percentage: 7 },
+            { text: "Wine Card", color: "#d946ef", percentage: 2 },
+            { text: "Cooler Bag", color: "#14b8a6", percentage: 7 },
+            { text: "New 330ml Can", color: "#84cc16", percentage: 4 },
+        ];
+
+        let totalPercentage = 0;
+        const prizeSegments = prizes.map(p => {
+            const start = totalPercentage;
+            totalPercentage += p.percentage;
+            const end = totalPercentage;
+            return { ...p, start, end };
+        });
+
+        const numSegments = prizes.length;
+        const anglePerSegment = 2 * Math.PI / numSegments;
+        let isSpinning = false;
+        let currentUser = null;
+        let unsubscribeUser;
+
+        async function callGemini(prompt, loadingElement, contentElement) {
+            loadingElement.classList.remove('hidden');
+            if (contentElement) contentElement.classList.add('hidden');
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            const fullPrompt = `Here is some background information about our brand, 1602 Craft Beer, and our current event:\n${knowledgeBaseContent}\n\n---\n\nNow, please fulfill this request:\n${prompt}`;
+
+            const payload = { contents: [{ role: "user", parts: [{ text: fullPrompt }] }] };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API call failed: ${response.status}`);
+                const result = await response.json();
+                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Our AI is a bit shy, please try again!";
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return "Our AI seems to be on a break. Please try again.";
+            } finally {
+                loadingElement.classList.add('hidden');
+                if (contentElement) contentElement.classList.remove('hidden');
             }
-            const knowledgeDoc = await getDoc(doc(db, 'knowledge', 'main'));
-            if (knowledgeDoc.exists()) {
-                knowledgeBaseContent = knowledgeDoc.data().content;
-                console.log("AI Knowledge Base loaded.");
+        }
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = 'bold 14px Poppins';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+
+            prizes.forEach((prize, i) => {
+                const startAngle = (i * anglePerSegment) - (Math.PI / 2);
+                const endAngle = ((i + 1) * anglePerSegment) - (Math.PI / 2);
+
+                ctx.beginPath();
+                ctx.moveTo(200, 200);
+                ctx.arc(200, 200, 200, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = prize.color;
+                ctx.fill();
+                ctx.save();
+                
+                ctx.fillStyle = 'white';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                ctx.translate(200, 200);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.fillText(langData[currentLang][prize.text] || prize.text, 120, 0);
+                ctx.restore();
+            });
+        }
+        
+        function switchLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-lang-en]').forEach(el => {
+                const key = el.dataset.langEn;
+                const translatedText = langData[lang][key] || key;
+                
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = translatedText;
+                } else {
+                    const target = el.querySelector('span') || el;
+                    const textNode = Array.from(target.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '');
+                    if(textNode) {
+                        textNode.textContent = translatedText;
+                    } else {
+                        target.textContent = translatedText;
+                    }
+                }
+            });
+            if (chancesLeftSpan.textContent) {
+                updateChancesText(parseInt(chancesLeftSpan.textContent));
+            }
+            drawWheel();
+            document.getElementById('lang-en').classList.toggle('bg-blue-500', lang === 'en');
+            document.getElementById('lang-en').classList.toggle('bg-gray-600', lang !== 'en');
+            document.getElementById('lang-zh').classList.toggle('bg-blue-500', lang === 'zh');
+            document.getElementById('lang-zh').classList.toggle('bg-gray-600', lang !== 'zh');
+        }
+        
+        document.getElementById('lang-en').addEventListener('click', () => switchLanguage('en'));
+        document.getElementById('lang-zh').addEventListener('click', () => switchLanguage('zh'));
+        
+        function getPrizeFromPercentage() {
+            let rand = Math.random() * 100;
+            for (const prize of prizeSegments) {
+                if (rand >= prize.start && rand < prize.end) {
+                    return prize;
+                }
+            }
+            return prizeSegments[0];
+        }
+
+        function spin() {
+            if (isSpinning || currentUser.drawChances <= 0) return;
+            isSpinning = true;
+            spinBtn.disabled = true;
+            document.getElementById('wheel-wrapper').classList.add('spinning-neon');
+
+            const targetPrize = getPrizeFromPercentage();
+            const targetIndex = prizes.findIndex(p => p.text === targetPrize.text);
+            
+            const baseRotations = 5 * 360;
+            const targetAngle = (360 / numSegments) * targetIndex;
+            const randomOffset = (Math.random() * 0.8 + 0.1) * (360 / numSegments);
+            const finalAngle = baseRotations + targetAngle + randomOffset;
+
+            canvas.style.transform = `rotate(${finalAngle}deg)`;
+            
+            setTimeout(async () => {
+                isSpinning = false;
+                document.getElementById('wheel-wrapper').classList.remove('spinning-neon');
+                canvas.style.transition = 'none';
+                const currentTransform = canvas.style.transform;
+                const currentAngle = parseFloat(currentTransform.replace(/[^0-9.-]/g, ''));
+                canvas.style.transform = `rotate(${currentAngle % 360}deg)`;
+                canvas.style.transition = 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)';
+
+                await handlePrize(targetPrize);
+            }, 5000);
+        }
+
+        async function handlePrize(prize) {
+            const userRef = doc(db, "users", currentUser.phone);
+            let newChances = currentUser.drawChances - 1;
+
+            const prizeText = langData[currentLang][prize.text] || prize.text;
+
+            const updatedPrizes = currentUser.prizesWon || [];
+            updatedPrizes.push({ prize: prize.text, timestamp: new Date() });
+            
+            const isOnlineVoucher = prize.text.includes("Online Voucher");
+
+            if (prize.text === "Spin Again!") {
+                newChances += 1;
+                showResult(langData[currentLang]["Awesome!"], langData[currentLang]["You get another free spin!"]);
+            } else if (prize.text === "Thank You") {
+                showResult(langData[currentLang]["Oh No..."], langData[currentLang]["Better luck next time!"], true);
+            } else {
+                showResult(langData[currentLang]["Congratulations!"], `${langData[currentLang]["You won a"]} ${prizeText}!`, false, isOnlineVoucher);
+                confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+
+                const prompt = `You are a fun event host for '1602'. A user won "${prizeText}". Write a short, exciting message. Include these points: 1. Congratulate them. 2. Encourage them to share with friends to get an extra RM2 cash voucher. 3. Tease that new 1602 products are coming soon and they might get an early chance by participating. Language: ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
+                const aiDescription = await callGemini(prompt, geminiLoading, modalContent);
+                modalText.innerHTML += `<br/><br/><p class="text-sm italic text-purple-300">${aiDescription}</p>`;
+            }
+
+            await updateDoc(userRef, {
+                drawChances: newChances,
+                prizesWon: updatedPrizes
+            });
+        }
+        
+        function showResult(title, text, isThankYou = false, isOnlineVoucher = false) {
+            modalTitle.textContent = title;
+            modalText.innerHTML = text;
+            geminiIdeaBtn.classList.toggle('hidden', !isThankYou);
+            onlineVoucherInstructions.classList.toggle('hidden', !isOnlineVoucher);
+            resultModal.classList.remove('hidden');
+        }
+
+        geminiIdeaBtn.addEventListener('click', async () => {
+            const prompt = `You are a cheerful AI assistant for '1602'. A user didn't win. To cheer them up, give a fun, short, creative suggestion. IMPORTANTLY, you must also tell them they can get another chance by spending RM60, and that big prizes are still waiting to be won. Language: ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
+            const idea = await callGemini(prompt, geminiLoading, modalContent);
+            modalText.textContent = idea;
+            geminiIdeaBtn.classList.add('hidden');
+        });
+
+        modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
+
+        function updateChancesText(chances) {
+             chancesLeftSpan.textContent = chances;
+             if (currentLang === 'en') {
+                chancesLeftSpan.nextElementSibling.textContent = ' chances left';
+             } else {
+                chancesLeftSpan.nextElementSibling.textContent = ' 次机会';
+             }
+        }
+
+        function setupUserSession(userData) {
+            currentUser = userData;
+            userNameDisplay.textContent = currentUser.name;
+            updateChancesText(userData.drawChances);
+            spinBtn.disabled = userData.drawChances <= 0;
+
+            landingPageContainer.classList.add('hidden');
+            registerPage.classList.add('hidden');
+            wheelPage.classList.remove('hidden');
+
+            if (unsubscribeUser) unsubscribeUser();
+            unsubscribeUser = onSnapshot(doc(db, "users", currentUser.phone), (doc) => {
+                if (doc.exists()) {
+                    currentUser = { phone: doc.id, ...doc.data() };
+                    updateChancesText(currentUser.drawChances);
+                    spinBtn.disabled = currentUser.drawChances <= 0 || isSpinning;
+                }
+            });
+        }
+
+        async function handleRegistration(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const countryCode = document.getElementById('country-code').value;
+            const phoneInput = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const address = document.getElementById('address').value.trim();
+
+            if (!name || !phoneInput) {
+                alert(langData[currentLang]["Please fill in required fields."]);
+                return;
+            }
+
+            if (!/^\d+$/.test(phoneInput)) {
+                alert(langData[currentLang]["Please enter a valid phone number (digits only)."]);
+                return;
+            }
+
+            const phone = countryCode + phoneInput;
+
+            const userRef = doc(db, "users", phone);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                alert(langData[currentLang]["User already exists. Loading your data..."]);
+                setupUserSession({ phone, ...userSnap.data() });
+            } else {
+                const newUser = {
+                    name,
+                    phone,
+                    email,
+                    address,
+                    drawChances: 1,
+                    joinDate: new Date(),
+                    prizesWon: []
+                };
+                await setDoc(userRef, newUser);
+                alert(langData[currentLang]["Registration successful!"]);
+                setupUserSession(newUser);
+            }
+        }
+        
+        function copyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.top = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert(langData[currentLang]["Copied to clipboard! And opening WhatsApp..."]);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        window.share = function(platform) {
+            const text = `🎉 1602手工精酿邀请您参加2025年古晋美食节！🍻\n\n快来我们的档口品尝新鲜出炉的鲜啤酒！现场分享此消息，即可额外获赠RM2代金券，还能参与我们的幸运轮盘大抽奖活动！🎁\n\n人人有机会，好酒好礼有惊喜！1602在古晋美食节档口等着您的光临!`;
+            let shareUrl = '';
+
+            switch(platform) {
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=https://www.example.com&quote=${encodeURIComponent(text)}`;
+                    window.open(shareUrl, '_blank');
+                    break;
+                case 'instagram':
+                    window.open('https://www.instagram.com', '_blank');
+                    break;
+                case 'copy_whatsapp':
+                    copyTextToClipboard(text);
+                    shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+                    window.open(shareUrl, '_blank');
+                    break;
+            }
+        }
+
+        function populateCountryCodes() {
+            const countries = [
+                { code: "+60", name: "Malaysia" },
+                { code: "+65", name: "Singapore" },
+                { code: "+86", name: "China" },
+                { code: "+91", name: "India" },
+                { code: "+61", name: "Australia" },
+                { code: "+44", name: "United Kingdom" },
+                { code: "+1", name: "USA / Canada" },
+                { code: "+81", name: "Japan" },
+                { code: "+82", name: "South Korea" },
+            ];
+            const select = document.getElementById('country-code');
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.code;
+                option.textContent = `${country.name} (${country.code})`;
+                if (country.code === "+60") {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function showGenericModal(type, customContent = '') {
+            let title = '';
+            let content = '';
+
+            switch(type) {
+                case 'tnc':
+                    title = langData[currentLang]["Terms & Conditions"];
+                    content = currentLang === 'zh' ? 
+                    `<p>1. 所有奖品不可兑换现金。</p><p>2. 线上代金券需下载'1602craftbeer' App使用。</p><p>3. 现金券仅限活动现场使用。</p><p>4. 1602保留对活动的最终解释权。</p><p class="mt-4">想了解更多？请游览官网: <a href="https://www.1602craftbeer.com" target="_blank" class="text-yellow-400 hover:underline">1602craftbeer.com</a></p>` :
+                    `<p>1. All prizes are non-exchangeable for cash.</p><p>2. Online vouchers must be redeemed via the '1602craftbeer' app.</p><p>3. Cash vouchers are only valid for use at the event.</p><p>4. 1602 reserves the right for the final interpretation of the event.</p><p class="mt-4">Want to know more? Visit our official website: <a href="https://www.1602craftbeer.com" target="_blank" class="text-yellow-400 hover:underline">1602craftbeer.com</a></p>`;
+                    break;
+                case 'packages':
+                    title = langData[currentLang]["1602 Packages"];
+                    content = currentLang === 'zh' ?
+                    `<p><strong>套餐A (RM 80):</strong> 2杯精酿啤酒 + 1份小吃。</p><p><strong>套餐B (RM 150):</strong> 4杯精酿啤酒 + 2份小吃 + 纪念品一份。</p><p><strong>畅饮套餐 (RM 200/人):</strong> 2小时内精酿啤酒无限畅饮。</p>` :
+                    `<p><strong>Package A (RM 80):</strong> 2 Craft Beers + 1 Snack.</p><p><strong>Package B (RM 150):</strong> 4 Craft Beers + 2 Snacks + 1 Souvenir.</p><p><strong>Free Flow Package (RM 200/pax):</strong> 2 hours of unlimited craft beer.</p>`;
+                    break;
+                case 'announcement':
+                    title = langData[currentLang]["Event Announcement"];
+                    content = customContent.replace(/\n/g, '<br/>');
+                    break;
+            }
+            
+            genericModalTitle.textContent = title;
+            genericModalContent.innerHTML = content;
+            genericModal.classList.remove('hidden');
+        }
+
+        async function handleBeerRecommendation(flavor) {
+            const prompt = `You are a friendly beer sommelier for 1602 Life Beer. A customer is interested in our "${flavor}". Provide a short, enticing description (2-3 sentences) explaining its taste profile and why they would love it. Our beers are Lager, Pale Ale, and Extra Dark. Speak in ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
+            const recommendationText = await callGemini(prompt, beerLoading, beerModalContent);
+            beerRecommendation.textContent = recommendationText;
+            beerRecommendation.classList.remove('hidden');
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 10 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${Math.random() * 15 + 10}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.setProperty('--x-end', `${Math.random() * 200 - 100}px`);
+                container.appendChild(particle);
+            }
+        }
+
+        // FIXED: Added this function back
+        async function fetchSettings() {
+            try {
+                const announcementDoc = await getDoc(doc(db, 'settings', 'announcement'));
+                if (announcementDoc.exists() && announcementDoc.data().content) {
+                    showGenericModal('announcement', announcementDoc.data().content);
+                }
+                const knowledgeDoc = await getDoc(doc(db, 'knowledge', 'main'));
+                if (knowledgeDoc.exists()) {
+                    knowledgeBaseContent = knowledgeDoc.data().content;
+                    console.log("AI Knowledge Base loaded.");
+                }
+            } catch (error) {
+                console.error("Error fetching settings:", error);
             }
         }
         
@@ -432,7 +835,6 @@
                 await signInAnonymously(auth);
                 console.log("Signed in anonymously to access Firestore.");
 
-                // FIXED: Initialize language first
                 switchLanguage('zh');
 
                 await fetchSettings();
