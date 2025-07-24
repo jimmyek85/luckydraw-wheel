@@ -85,7 +85,7 @@
                                     <th scope="col" class="px-6 py-3">电话</th>
                                     <th scope="col" class="px-6 py-3">机会次数</th>
                                     <th scope="col" class="px-6 py-3">加入日期</th>
-                                    <th scope="col" class="px-6 py-3">操作</th>
+                                    <th scope="col" class="px-6 py-3">获奖记录</th>
                                 </tr>
                             </thead>
                             <tbody id="users-table-body">
@@ -101,7 +101,9 @@
                     <h2 class="text-xl font-semibold mb-4 text-gray-700">活动公布栏</h2>
                     <p class="text-sm text-gray-500 mb-4">在此处发布的内容，将会以弹窗形式在客户端首页展示给新进入的用户。清空并发布，即可关闭弹窗。</p>
                     <textarea id="announcement-text" class="w-full h-40 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="输入您的公告内容..."></textarea>
-                    <button id="publish-announcement-btn" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition">发布公告</button>
+                    <button id="publish-announcement-btn" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition flex items-center justify-center">
+                        <span class="btn-text">发布公告</span>
+                    </button>
                  </div>
             </div>
 
@@ -120,7 +122,9 @@
                             </div>
                         </div>
                     </div>
-                    <button id="save-knowledge-btn" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition">保存知识库</button>
+                    <button id="save-knowledge-btn" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition flex items-center justify-center">
+                        <span class="btn-text">保存知识库</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -151,6 +155,17 @@
             <div class="flex justify-center gap-4">
                 <button id="confirm-modal-cancel-btn" class="px-6 py-2 rounded-md bg-gray-200 hover:bg-gray-300">取消</button>
                 <button id="confirm-modal-ok-btn" class="px-6 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">确认</button>
+            </div>
+        </div>
+    </div>
+    <div id="user-detail-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-lg w-full mx-auto text-left">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 id="user-detail-title" class="text-xl font-bold text-gray-800">用户详情</h3>
+                <button id="user-detail-close-btn" class="text-2xl leading-none">&times;</button>
+            </div>
+            <div id="user-detail-content" class="text-gray-700 space-y-4">
+                <!-- User details will be injected here -->
             </div>
         </div>
     </div>
@@ -190,13 +205,13 @@
         const summaryLoading = summaryModal.querySelector('#summary-loading');
         const addUserModal = document.getElementById('add-user-modal');
         const confirmModal = document.getElementById('confirm-modal');
+        const userDetailModal = document.getElementById('user-detail-modal');
         const selectAllCheckbox = document.getElementById('select-all-users');
         const copyPhonesBtn = document.getElementById('copy-phones-btn');
         const copyEmailsBtn = document.getElementById('copy-emails-btn');
         
         let allUsersData = [];
 
-        // Tab switching logic
         const tabs = document.querySelectorAll('.tab-btn');
         const panes = document.querySelectorAll('.tab-pane');
         tabs.forEach(tab => {
@@ -212,7 +227,7 @@
             summaryLoading.classList.remove('hidden');
             summaryContent.classList.add('hidden');
 
-            const apiKey = ""; // The platform will inject the key
+            const apiKey = ""; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -277,18 +292,19 @@
             allUsersData = users;
             users.forEach(user => {
                 const joinDate = user.joinDate?.toDate()?.toLocaleString() || 'N/A';
+                const prizesWonText = user.prizesWon && user.prizesWon.length > 0 
+                    ? user.prizesWon.map(p => p.prize).join(', ') 
+                    : '无';
+                
                 const row = document.createElement('tr');
                 row.className = 'bg-white border-b hover:bg-gray-50';
                 row.innerHTML = `
                     <td class="px-2 py-4"><input type="checkbox" class="user-checkbox" data-phone="${user.phone || ''}" data-email="${user.email || ''}"></td>
-                    <td class="px-6 py-4 font-medium text-gray-900">${user.name || 'N/A'}</td>
+                    <td class="px-6 py-4 font-medium text-blue-600 hover:underline cursor-pointer user-name-clickable" data-userid="${user.id}">${user.name || 'N/A'}</td>
                     <td class="px-6 py-4">${user.phone || 'N/A'}</td>
-                    <td class="px-6 py-4 font-bold text-blue-600">${user.drawChances}</td>
+                    <td class="px-6 py-4 font-bold text-center">${user.drawChances}</td>
                     <td class="px-6 py-4">${joinDate}</td>
-                    <td class="px-6 py-4 flex items-center gap-2">
-                        <button class="delete-user-btn text-red-500 hover:text-red-700" data-id="${user.id}" data-name="${user.name || 'this user'}">删除</button>
-                        <a href="https://wa.me/${(user.phone || '').replace('+', '')}" target="_blank" class="text-green-500 hover:text-green-700">WhatsApp</a>
-                    </td>
+                    <td class="px-6 py-4">${prizesWonText}</td>
                 `;
                 usersTableBody.appendChild(row);
             });
@@ -436,8 +452,6 @@
             document.body.removeChild(link);
         }
         
-        // --- NEW & UPDATED FUNCTIONS ---
-
         function updateBulkActionButtons() {
             const selectedCount = document.querySelectorAll('.user-checkbox:checked').length;
             copyPhonesBtn.disabled = selectedCount === 0;
@@ -494,12 +508,51 @@
             showConfirmation(`确定要删除用户 "${userName}" 吗？此操作无法撤销。`, async () => {
                 try {
                     await deleteDoc(doc(db, "users", userId));
-                    alert("用户已删除。");
+                    userDetailModal.classList.add('hidden');
                 } catch (error) {
                     console.error("Error deleting user: ", error);
-                    alert("删除失败。");
                 }
             });
+        }
+        
+        function showUserDetailModal(userId) {
+            const user = allUsersData.find(u => u.id === userId);
+            if (!user) return;
+
+            const userDetailTitle = document.getElementById('user-detail-title');
+            const userDetailContent = document.getElementById('user-detail-content');
+
+            userDetailTitle.textContent = user.name || '用户详情';
+            
+            let prizesHtml = '无获奖记录';
+            if (user.prizesWon && user.prizesWon.length > 0) {
+                prizesHtml = '<ul class="list-disc pl-5 max-h-40 overflow-y-auto">';
+                user.prizesWon.forEach(p => {
+                    const prizeTime = p.timestamp?.toDate()?.toLocaleString() || 'N/A';
+                    prizesHtml += `<li><strong>${p.prize}</strong> - ${prizeTime}</li>`;
+                });
+                prizesHtml += '</ul>';
+            }
+
+            userDetailContent.innerHTML = `
+                <p><strong>电话:</strong> ${user.phone || 'N/A'}</p>
+                <p><strong>邮箱:</strong> ${user.email || 'N/A'}</p>
+                <p><strong>地址:</strong> ${user.address || 'N/A'}</p>
+                <div>
+                    <h4 class="font-bold mt-4 mb-2">获奖资讯</h4>
+                    ${prizesHtml}
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <a href="https://wa.me/${(user.phone || '').replace('+', '')}" target="_blank" class="w-full text-center bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">WhatsApp</a>
+                    <button id="modal-delete-user-btn" class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition">删除用户</button>
+                </div>
+            `;
+
+            userDetailModal.classList.remove('hidden');
+
+            document.getElementById('modal-delete-user-btn').onclick = () => {
+                deleteUser(user.id, user.name);
+            };
         }
 
         function showAddUserModal() {
@@ -541,34 +594,49 @@
 
             try {
                 await setDoc(doc(db, "users", phone), newUser);
-                alert("用户添加成功！");
                 addUserModal.classList.add('hidden');
             } catch (error) {
                 console.error("Error adding user: ", error);
-                alert("添加用户失败。");
             }
         }
 
-        // Announcement & Knowledge Base Functions
+        async function showButtonFeedback(btn, originalText) {
+            const textSpan = btn.querySelector('.btn-text');
+            btn.disabled = true;
+            textSpan.textContent = '处理中...';
+
+            setTimeout(() => {
+                textSpan.textContent = '成功！ ✔';
+                btn.classList.remove('bg-indigo-600');
+                btn.classList.add('bg-green-500');
+                setTimeout(() => {
+                    textSpan.textContent = originalText;
+                    btn.classList.remove('bg-green-500');
+                    btn.classList.add('bg-indigo-600');
+                    btn.disabled = false;
+                }, 2000);
+            }, 500);
+        }
+
         async function publishAnnouncement() {
+            const btn = document.getElementById('publish-announcement-btn');
             const text = document.getElementById('announcement-text').value;
             try {
                 await setDoc(doc(settingsCollection, 'announcement'), { content: text, lastUpdated: new Date() });
-                alert("公告已发布！");
+                showButtonFeedback(btn, '发布公告');
             } catch (error) {
                 console.error("Error publishing announcement: ", error);
-                alert("发布失败。");
             }
         }
 
         async function saveKnowledge() {
+            const btn = document.getElementById('save-knowledge-btn');
             const text = document.getElementById('knowledge-text').value;
             try {
                 await setDoc(doc(knowledgeCollection, 'main'), { content: text, lastUpdated: new Date() });
-                alert("AI知识库已保存！");
+                showButtonFeedback(btn, '保存知识库');
             } catch (error) {
                 console.error("Error saving knowledge base: ", error);
-                alert("保存失败。");
             }
         }
 
@@ -593,7 +661,6 @@
                 await fetchUsers();
                 await loadSettings();
 
-                // Event Listeners
                 searchBtn.addEventListener('click', searchUser);
                 searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchUser(); });
                 exportCsvBtn.addEventListener('click', exportToCSV);
@@ -607,10 +674,12 @@
                     if (e.target && e.target.closest('#add-user-form') && e.target.tagName === 'BUTTON') {
                         saveNewUser(e);
                     }
-                    if (e.target && e.target.classList.contains('delete-user-btn')) {
-                        deleteUser(e.target.dataset.id, e.target.dataset.name);
+                    if (e.target && e.target.classList.contains('user-name-clickable')) {
+                        showUserDetailModal(e.target.dataset.userid);
                     }
                 });
+                
+                userDetailModal.querySelector('#user-detail-close-btn').addEventListener('click', () => userDetailModal.classList.add('hidden'));
 
                 resultContainer.addEventListener('click', handleAddChanceClick);
 
