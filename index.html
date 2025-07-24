@@ -121,7 +121,8 @@
                 <h1 class="text-4xl font-bold mb-2 text-yellow-300" data-lang-en="A Surprise Awaits!">A Surprise Awaits!</h1>
                 <p class="text-lg mb-4 text-white" data-lang-en="Meeting is fate, a gift is our bond.">Meeting is fate, a gift is our bond.</p>
                 <div class="bg-white p-2 rounded-lg inline-block my-4 shadow-lg">
-                     <img src="https://storage2.me-qr.com/qr/230142074.png" alt="1602 Lucky Draw QR Code" class="w-48 h-48">
+                     <!-- UPDATED: New QR Code -->
+                     <img src="https://storage2.me-qr.com/qr/231041081.png" alt="1602 Lucky Draw QR Code" class="w-48 h-48">
                 </div>
                 <p class="mt-4 text-sm text-gray-300" data-lang-en="Scan or Click Below to Join!">Scan or Click Below to Join!</p>
                 <button id="fast-track-btn" class="mt-6 w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105" data-lang-en="Enter Now">Enter Now</button>
@@ -188,8 +189,8 @@
                     <p class="font-bold mb-2" data-lang-en="How to Claim Your Online Voucher:">How to Claim Your Online Voucher:</p>
                     <p data-lang-en="Download our '1602craftbeer' app to redeem your prize!">Download our '1602craftbeer' app to redeem your prize!</p>
                     <div class="flex justify-center gap-4 mt-2">
-                        <a href="#" target="_blank" class="opacity-80 hover:opacity-100"><img src="https://placehold.co/120x40/000000/FFFFFF?text=App+Store" alt="Download on the App Store"></a>
-                        <a href="#" target="_blank" class="opacity-80 hover:opacity-100"><img src="https://placehold.co/120x40/000000/FFFFFF?text=Google+Play" alt="Get it on Google Play"></a>
+                        <a href="https://apps.apple.com/your-app-link" target="_blank" class="opacity-80 hover:opacity-100"><img src="https://placehold.co/120x40/000000/FFFFFF?text=App+Store" alt="Download on the App Store"></a>
+                        <a href="https://play.google.com/store/apps/details?id=your.app.id" target="_blank" class="opacity-80 hover:opacity-100"><img src="https://placehold.co/120x40/000000/FFFFFF?text=Google+Play" alt="Get it on Google Play"></a>
                     </div>
                 </div>
                 <button id="gemini-idea-btn" class="hidden w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 my-4">
@@ -425,7 +426,7 @@
         const ctx = canvas.getContext('2d');
         const prizes = [
             { text: "Cash Voucher RM5", color: "#fde047", percentage: 10 },
-            { text: "Thank You", color: "#4b5563", percentage: 30 },
+            { text: "Thank You", color: "#4b5563", percentage: 26 },
             { text: "Online Voucher RM10", color: "#60a5fa", percentage: 8 },
             { text: "Free 660ml Bottle", color: "#ef4444", percentage: 16 },
             { text: "1602 Mug", color: "#a78bfa", percentage: 8 },
@@ -562,9 +563,10 @@
             const targetIndex = prizes.findIndex(p => p.text === targetPrize.text);
             
             const baseRotations = 5 * 360;
-            const targetAngle = (360 / numSegments) * targetIndex;
-            const randomOffset = (Math.random() * 0.8 + 0.1) * (360 / numSegments);
-            const finalAngle = baseRotations + targetAngle + randomOffset;
+            const segmentAngle = 360 / numSegments;
+            const targetAngle = segmentAngle * targetIndex;
+            const randomOffset = (Math.random() * 0.8 + 0.1) * segmentAngle;
+            const finalAngle = baseRotations - targetAngle - randomOffset;
 
             canvas.style.transform = `rotate(${finalAngle}deg)`;
             
@@ -812,8 +814,7 @@
                 container.appendChild(particle);
             }
         }
-
-        // FIXED: Added this function back
+        
         async function fetchSettings() {
             try {
                 const announcementDoc = await getDoc(doc(db, 'settings', 'announcement'));
