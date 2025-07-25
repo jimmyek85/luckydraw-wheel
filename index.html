@@ -251,6 +251,7 @@
 
     <!-- API Configuration -->
     <script src="config.js"></script>
+    <script src="ai-features.js"></script>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -454,57 +455,14 @@
         let currentUser = null;
         let unsubscribeUser;
 
+        // 使用新的 GeminiAI 类
         async function callGemini(prompt, loadingElement, contentElement) {
             loadingElement.classList.remove('hidden');
             if (contentElement) contentElement.classList.add('hidden');
 
-            // 检查 API 密钥是否已配置
-            if (!isApiKeyConfigured()) {
-                console.warn("Gemini API key not configured. Please set your API key in config.js");
-                const fallbackMessage = currentLang === 'zh' 
-                    ? "AI 功能暂时不可用，请联系管理员配置 API 密钥。" 
-                    : "AI features are temporarily unavailable. Please contact admin to configure API key.";
-                
-                loadingElement.classList.add('hidden');
-                if (contentElement) contentElement.classList.remove('hidden');
-                return fallbackMessage;
-            }
-
-            const apiUrl = `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`;
-            
-            const fullPrompt = `Here is some background information about our brand, 1602 Craft Beer, and our current event:\n${knowledgeBaseContent}\n\n---\n\nNow, please fulfill this request:\n${prompt}`;
-
-            const payload = { contents: [{ role: "user", parts: [{ text: fullPrompt }] }] };
-
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`Gemini API Error: ${response.status} - ${errorText}`);
-                    
-                    if (response.status === 403) {
-                        return currentLang === 'zh' 
-                            ? "API 密钥无效或已过期，请检查配置。" 
-                            : "API key is invalid or expired. Please check configuration.";
-                    } else if (response.status === 429) {
-                        return currentLang === 'zh' 
-                            ? "API 调用次数已达上限，请稍后再试。" 
-                            : "API rate limit exceeded. Please try again later.";
-                    } else {
-                        return currentLang === 'zh' 
-                            ? "AI 服务暂时不可用，请稍后再试。" 
-                            : "AI service temporarily unavailable. Please try again later.";
-                    }
-                }
-                
-                const result = await response.json();
-                return result.candidates?.[0]?.content?.parts?.[0]?.text || 
-                       (currentLang === 'zh' ? "AI 有点害羞，请再试一次！" : "Our AI is a bit shy, please try again!");
+                const result = await geminiAI.callAPI(prompt, knowledgeBaseContent, currentLang);
+                return result;
             } catch (error) {
                 console.error("Gemini API Error:", error);
                 return currentLang === 'zh' 
@@ -638,9 +596,12 @@
                 confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
 
                 if (!isOfflineMode) {
-                    const prompt = `You are a fun event host for '1602'. A user won "${prizeText}". Write a short, exciting message. Include these points: 1. Congratulate them. 2. Encourage them to share with friends to get an extra RM2 cash voucher. 3. Tease that new 1602 products are coming soon and they might get an early chance by participating. Language: ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
-                    const aiDescription = await callGemini(prompt, geminiLoading, modalContent);
-                    modalText.innerHTML += `<br/><br/><p class="text-sm italic text-purple-300">${aiDescription}</p>`;
+                    try {
+                        const aiDescription = await geminiAI.getPersonalizedWinMessage(prizeText, currentLang);
+                        modalText.innerHTML += `<br/><br/><p class="text-sm italic text-purple-300">${aiDescription}</p>`;
+                    } catch (error) {
+                        console.error("AI message generation error:", error);
+                    }
                 }
             }
 
@@ -679,10 +640,18 @@
         }
 
         geminiIdeaBtn.addEventListener('click', async () => {
-            const prompt = `You are a cheerful AI assistant for '1602'. A user didn't win. To cheer them up, give a fun, short, creative suggestion. IMPORTANTLY, you must also tell them they can get another chance by spending RM60, and that big prizes are still waiting to be won. Language: ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
-            const idea = await callGemini(prompt, geminiLoading, modalContent);
-            modalText.textContent = idea;
-            geminiIdeaBtn.classList.add('hidden');
+            try {
+                const idea = await geminiAI.getCreativeSuggestion(currentLang);
+                modalText.textContent = idea;
+                geminiIdeaBtn.classList.add('hidden');
+            } catch (error) {
+                console.error("Creative suggestion error:", error);
+                const fallbackText = currentLang === 'zh' 
+                    ? "AI 正在思考中，请稍后再试！别忘了您还可以通过消费RM60获得更多抽奖机会哦！" 
+                    : "Our AI is thinking hard! Please try again later. Don't forget you can get more chances by spending RM60!";
+                modalText.textContent = fallbackText;
+                geminiIdeaBtn.classList.add('hidden');
+            }
         });
 
         modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
@@ -874,10 +843,18 @@
         }
 
         async function handleBeerRecommendation(flavor) {
-            const prompt = `You are a friendly beer sommelier for 1602 Life Beer. A customer is interested in our "${flavor}". Provide a short, enticing description (2-3 sentences) explaining its taste profile and why they would love it. Our beers are Lager, Pale Ale, and Extra Dark. Speak in ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
-            const recommendationText = await callGemini(prompt, beerLoading, beerModalContent);
-            beerRecommendation.textContent = recommendationText;
-            beerRecommendation.classList.remove('hidden');
+            try {
+                const recommendationText = await geminiAI.getBeerRecommendation(flavor, currentLang);
+                beerRecommendation.textContent = recommendationText;
+                beerRecommendation.classList.remove('hidden');
+            } catch (error) {
+                console.error("Beer recommendation error:", error);
+                const fallbackText = currentLang === 'zh' 
+                    ? "抱歉，AI 品酒师暂时不在，请稍后再试。" 
+                    : "Sorry, our AI sommelier is taking a break. Please try again later.";
+                beerRecommendation.textContent = fallbackText;
+                beerRecommendation.classList.remove('hidden');
+            }
         }
 
         function createParticles() {

@@ -3,24 +3,76 @@
 // 您可以从 Google AI Studio 获取免费的 API 密钥: https://aistudio.google.com/app/apikey
 
 const API_CONFIG = {
-    // 请将 'YOUR_GEMINI_API_KEY_HERE' 替换为您的实际 API 密钥
+    // 请将下面的密钥替换为您的实际 API 密钥
+    // 示例: 'AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
     GEMINI_API_KEY: 'AIzaSyDEpz7tsqqZ6-9YBXUovTczOfrm5ny7rbk',
     
-    // Gemini API 端点
+    // Gemini API 端点 - 使用最新的 Gemini 2.0 Flash 模型
     GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
     
+    // 备用 API 端点（如果主端点不可用）
+    GEMINI_API_URL_FALLBACK: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+    
     // 是否启用 AI 功能（如果没有 API 密钥，可以设置为 false）
-    ENABLE_AI_FEATURES: true
+    ENABLE_AI_FEATURES: true,
+    
+    // AI 功能配置
+    AI_FEATURES: {
+        // 啤酒推荐功能
+        BEER_RECOMMENDATION: true,
+        // 个性化中奖消息
+        PERSONALIZED_MESSAGES: true,
+        // 用户数据分析（管理面板）
+        USER_ANALYTICS: true,
+        // 创意建议
+        CREATIVE_IDEAS: true
+    },
+    
+    // API 请求配置
+    REQUEST_CONFIG: {
+        // 请求超时时间（毫秒）
+        TIMEOUT: 10000,
+        // 最大重试次数
+        MAX_RETRIES: 2,
+        // 重试延迟（毫秒）
+        RETRY_DELAY: 1000
+    }
 };
 
 // 检查 API 密钥是否已设置
 function isApiKeyConfigured() {
     return API_CONFIG.GEMINI_API_KEY && 
            API_CONFIG.GEMINI_API_KEY !== 'AIzaSyDEpz7tsqqZ6-9YBXUovTczOfrm5ny7rbk' && 
-           API_CONFIG.GEMINI_API_KEY.trim() !== '';
+           API_CONFIG.GEMINI_API_KEY.trim() !== '' &&
+           API_CONFIG.GEMINI_API_KEY.startsWith('AIzaSy');
+}
+
+// 验证 API 密钥格式
+function validateApiKey(apiKey) {
+    if (!apiKey || typeof apiKey !== 'string') {
+        return false;
+    }
+    
+    // Google API 密钥通常以 'AIzaSy' 开头，长度约为 39 个字符
+    return apiKey.startsWith('AIzaSy') && apiKey.length >= 35;
+}
+
+// 获取当前配置状态
+function getConfigStatus() {
+    return {
+        apiKeyConfigured: isApiKeyConfigured(),
+        apiKeyValid: validateApiKey(API_CONFIG.GEMINI_API_KEY),
+        aiEnabled: API_CONFIG.ENABLE_AI_FEATURES,
+        features: API_CONFIG.AI_FEATURES
+    };
 }
 
 // 导出配置（用于模块化）
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { API_CONFIG, isApiKeyConfigured };
+    module.exports = { 
+        API_CONFIG, 
+        isApiKeyConfigured, 
+        validateApiKey, 
+        getConfigStatus 
+    };
 }
