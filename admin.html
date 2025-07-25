@@ -170,6 +170,9 @@
         </div>
     </div>
     
+    <!-- API Configuration -->
+    <script src="config.js"></script>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -227,7 +230,16 @@
             summaryLoading.classList.remove('hidden');
             summaryContent.classList.add('hidden');
 
-            const apiKey = ""; 
+            // 检查 API 密钥是否已配置
+            if (!window.GEMINI_API_KEY) {
+                console.warn("Gemini API key not configured. Please set your API key in config.js");
+                summaryLoading.classList.add('hidden');
+                summaryContent.classList.remove('hidden');
+                summaryContent.innerHTML = "AI 功能暂时不可用，请在 config.js 中配置 API 密钥。";
+                return;
+            }
+
+            const apiKey = window.GEMINI_API_KEY;
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -240,17 +252,27 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(`API call failed: ${response.status}`);
                 
-                const result = await response.json();
-                let text = "Sorry, the AI analysis failed. Please try again.";
-                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    text = result.candidates[0].content.parts[0].text;
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Gemini API Error: ${response.status} - ${errorText}`);
+                    
+                    let errorMessage = "AI 服务暂时不可用。";
+                    if (response.status === 403) {
+                        errorMessage = "API 密钥无效或已过期，请检查配置。";
+                    } else if (response.status === 429) {
+                        errorMessage = "API 调用次数已达上限，请稍后再试。";
+                    }
+                    
+                    summaryContent.innerHTML = errorMessage;
+                } else {
+                    const result = await response.json();
+                    const content = result.candidates?.[0]?.content?.parts?.[0]?.text || "AI 分析失败，请重试。";
+                    summaryContent.innerHTML = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
                 }
-                return text;
             } catch (error) {
                 console.error("Gemini API Error:", error);
-                return "An error occurred while contacting the AI. Please check the console.";
+                summaryContent.innerHTML = "AI 分析失败，请检查网络连接。";
             } finally {
                 summaryLoading.classList.add('hidden');
                 summaryContent.classList.remove('hidden');

@@ -249,10 +249,13 @@
     </div>
 
 
+    <!-- API Configuration -->
+    <script src="config.js"></script>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY",
@@ -455,8 +458,19 @@
             loadingElement.classList.remove('hidden');
             if (contentElement) contentElement.classList.add('hidden');
 
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            // 检查 API 密钥是否已配置
+            if (!isApiKeyConfigured()) {
+                console.warn("Gemini API key not configured. Please set your API key in config.js");
+                const fallbackMessage = currentLang === 'zh' 
+                    ? "AI 功能暂时不可用，请联系管理员配置 API 密钥。" 
+                    : "AI features are temporarily unavailable. Please contact admin to configure API key.";
+                
+                loadingElement.classList.add('hidden');
+                if (contentElement) contentElement.classList.remove('hidden');
+                return fallbackMessage;
+            }
+
+            const apiUrl = `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`;
             
             const fullPrompt = `Here is some background information about our brand, 1602 Craft Beer, and our current event:\n${knowledgeBaseContent}\n\n---\n\nNow, please fulfill this request:\n${prompt}`;
 
@@ -468,12 +482,34 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(`API call failed: ${response.status}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Gemini API Error: ${response.status} - ${errorText}`);
+                    
+                    if (response.status === 403) {
+                        return currentLang === 'zh' 
+                            ? "API 密钥无效或已过期，请检查配置。" 
+                            : "API key is invalid or expired. Please check configuration.";
+                    } else if (response.status === 429) {
+                        return currentLang === 'zh' 
+                            ? "API 调用次数已达上限，请稍后再试。" 
+                            : "API rate limit exceeded. Please try again later.";
+                    } else {
+                        return currentLang === 'zh' 
+                            ? "AI 服务暂时不可用，请稍后再试。" 
+                            : "AI service temporarily unavailable. Please try again later.";
+                    }
+                }
+                
                 const result = await response.json();
-                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Our AI is a bit shy, please try again!";
+                return result.candidates?.[0]?.content?.parts?.[0]?.text || 
+                       (currentLang === 'zh' ? "AI 有点害羞，请再试一次！" : "Our AI is a bit shy, please try again!");
             } catch (error) {
                 console.error("Gemini API Error:", error);
-                return "Our AI seems to be on a break. Please try again.";
+                return currentLang === 'zh' 
+                    ? "AI 似乎在休息中，请稍后再试。" 
+                    : "Our AI seems to be on a break. Please try again.";
             } finally {
                 loadingElement.classList.add('hidden');
                 if (contentElement) contentElement.classList.remove('hidden');
@@ -583,7 +619,6 @@
         }
 
         async function handlePrize(prize) {
-            const userRef = doc(db, "users", currentUser.phone);
             let newChances = currentUser.drawChances - 1;
 
             const prizeText = langData[currentLang][prize.text] || prize.text;
@@ -602,15 +637,37 @@
                 showResult(langData[currentLang]["Congratulations!"], `${langData[currentLang]["You won a"]} ${prizeText}!`, false, isOnlineVoucher);
                 confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
 
-                const prompt = `You are a fun event host for '1602'. A user won "${prizeText}". Write a short, exciting message. Include these points: 1. Congratulate them. 2. Encourage them to share with friends to get an extra RM2 cash voucher. 3. Tease that new 1602 products are coming soon and they might get an early chance by participating. Language: ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
-                const aiDescription = await callGemini(prompt, geminiLoading, modalContent);
-                modalText.innerHTML += `<br/><br/><p class="text-sm italic text-purple-300">${aiDescription}</p>`;
+                if (!isOfflineMode) {
+                    const prompt = `You are a fun event host for '1602'. A user won "${prizeText}". Write a short, exciting message. Include these points: 1. Congratulate them. 2. Encourage them to share with friends to get an extra RM2 cash voucher. 3. Tease that new 1602 products are coming soon and they might get an early chance by participating. Language: ${currentLang === 'zh' ? 'Chinese' : 'English'}.`;
+                    const aiDescription = await callGemini(prompt, geminiLoading, modalContent);
+                    modalText.innerHTML += `<br/><br/><p class="text-sm italic text-purple-300">${aiDescription}</p>`;
+                }
             }
 
-            await updateDoc(userRef, {
-                drawChances: newChances,
-                prizesWon: updatedPrizes
-            });
+            // 更新用户数据
+            currentUser.drawChances = newChances;
+            currentUser.prizesWon = updatedPrizes;
+
+            if (isOfflineMode) {
+                // 离线模式：保存到本地存储
+                localStorage.setItem('offlineUser', JSON.stringify(currentUser));
+                updateChancesText(newChances);
+                spinBtn.disabled = newChances <= 0 || isSpinning;
+            } else {
+                // 在线模式：更新到 Firebase
+                try {
+                    const userRef = doc(db, "users", currentUser.phone);
+                    await updateDoc(userRef, {
+                        drawChances: newChances,
+                        prizesWon: updatedPrizes
+                    });
+                } catch (error) {
+                    console.error("Error updating user data:", error);
+                    // 如果更新失败，至少在本地更新
+                    updateChancesText(newChances);
+                    spinBtn.disabled = newChances <= 0 || isSpinning;
+                }
+            }
         }
         
         function showResult(title, text, isThankYou = false, isOnlineVoucher = false) {
@@ -649,14 +706,17 @@
             registerPage.classList.add('hidden');
             wheelPage.classList.remove('hidden');
 
-            if (unsubscribeUser) unsubscribeUser();
-            unsubscribeUser = onSnapshot(doc(db, "users", currentUser.phone), (doc) => {
-                if (doc.exists()) {
-                    currentUser = { phone: doc.id, ...doc.data() };
-                    updateChancesText(currentUser.drawChances);
-                    spinBtn.disabled = currentUser.drawChances <= 0 || isSpinning;
-                }
-            });
+            if (!isOfflineMode) {
+                // 在线模式：监听 Firebase 数据变化
+                if (unsubscribeUser) unsubscribeUser();
+                unsubscribeUser = onSnapshot(doc(db, "users", currentUser.phone), (doc) => {
+                    if (doc.exists()) {
+                        currentUser = { phone: doc.id, ...doc.data() };
+                        updateChancesText(currentUser.drawChances);
+                        spinBtn.disabled = currentUser.drawChances <= 0 || isSpinning;
+                    }
+                });
+            }
         }
 
         async function handleRegistration(e) {
@@ -679,13 +739,8 @@
 
             const phone = countryCode + phoneInput;
 
-            const userRef = doc(db, "users", phone);
-            const userSnap = await getDoc(userRef);
-
-            if (userSnap.exists()) {
-                alert(langData[currentLang]["User already exists. Loading your data..."]);
-                setupUserSession({ phone, ...userSnap.data() });
-            } else {
+            if (isOfflineMode) {
+                // 离线模式处理
                 const newUser = {
                     name,
                     phone,
@@ -695,9 +750,37 @@
                     joinDate: new Date(),
                     prizesWon: []
                 };
-                await setDoc(userRef, newUser);
-                alert(langData[currentLang]["Registration successful!"]);
+                offlineUserData = newUser;
+                localStorage.setItem('offlineUser', JSON.stringify(newUser));
+                alert(langData[currentLang]["Registration successful! (Offline mode)"]);
                 setupUserSession(newUser);
+                return;
+            }
+
+            try {
+                const userRef = doc(db, "users", phone);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    alert(langData[currentLang]["User already exists. Loading your data..."]);
+                    setupUserSession({ phone, ...userSnap.data() });
+                } else {
+                    const newUser = {
+                        name,
+                        phone,
+                        email,
+                        address,
+                        drawChances: 1,
+                        joinDate: new Date(),
+                        prizesWon: []
+                    };
+                    await setDoc(userRef, newUser);
+                    alert(langData[currentLang]["Registration successful!"]);
+                    setupUserSession(newUser);
+                }
+            } catch (error) {
+                console.error("Registration error:", error);
+                alert(langData[currentLang]["Registration failed. Please try again."]);
             }
         }
         
@@ -830,30 +913,30 @@
             }
         }
         
+        // 离线模式支持
+        let isOfflineMode = false;
+        let offlineUserData = null;
+
+        function enableOfflineMode() {
+            isOfflineMode = true;
+            console.log("Running in offline mode");
+            
+            // 显示离线提示
+            const offlineNotice = document.createElement('div');
+            offlineNotice.className = 'fixed top-0 left-0 right-0 bg-yellow-600 text-white text-center py-2 text-sm z-50';
+            offlineNotice.innerHTML = '⚠️ 离线模式 - 数据将在连接恢复后同步';
+            document.body.appendChild(offlineNotice);
+        }
+
         async function initApp() {
             try {
-                await signInAnonymously(auth);
-                console.log("Signed in anonymously to access Firestore.");
-
+                // 设置基本UI
                 switchLanguage('zh');
-
-                await fetchSettings();
-
-                const urlParams = new URLSearchParams(window.location.search);
-                const source = urlParams.get('source');
-
-                if (source === 'qrcode') {
-                    landingPageContainer.classList.add('hidden');
-                    registerPage.classList.remove('hidden');
-                } else {
-                    landingPageContainer.classList.remove('hidden');
-                    registerPage.classList.add('hidden');
-                }
-               
                 createParticles();
                 populateCountryCodes();
                 drawWheel();
                 
+                // 设置事件监听器
                 registerForm.addEventListener('submit', handleRegistration);
                 spinBtn.addEventListener('click', spin);
                 document.getElementById('tnc-btn').addEventListener('click', () => showGenericModal('tnc'));
@@ -872,9 +955,92 @@
                     btn.addEventListener('click', () => handleBeerRecommendation(btn.dataset.flavor));
                 });
 
+                // 检查本地存储的离线用户数据
+                const savedOfflineUser = localStorage.getItem('offlineUser');
+                if (savedOfflineUser) {
+                    try {
+                        offlineUserData = JSON.parse(savedOfflineUser);
+                        console.log("Found offline user data:", offlineUserData);
+                    } catch (e) {
+                        console.error("Error parsing offline user data:", e);
+                        localStorage.removeItem('offlineUser');
+                    }
+                }
+
+                // 尝试连接 Firebase
+                try {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously to access Firestore.");
+                    await fetchSettings();
+                    
+                    // 如果有离线用户数据且现在在线，尝试同步
+                    if (offlineUserData) {
+                        console.log("Attempting to sync offline user data...");
+                        try {
+                            const userRef = doc(db, "users", offlineUserData.phone);
+                            const userSnap = await getDoc(userRef);
+                            
+                            if (userSnap.exists()) {
+                                // 用户已存在，加载在线数据
+                                setupUserSession({ phone: offlineUserData.phone, ...userSnap.data() });
+                            } else {
+                                // 用户不存在，上传离线数据
+                                await setDoc(userRef, offlineUserData);
+                                setupUserSession(offlineUserData);
+                            }
+                            
+                            // 清除本地离线数据
+                            localStorage.removeItem('offlineUser');
+                            offlineUserData = null;
+                        } catch (syncError) {
+                            console.error("Error syncing offline data:", syncError);
+                            // 同步失败，继续使用离线数据
+                            enableOfflineMode();
+                            setupUserSession(offlineUserData);
+                        }
+                    }
+                } catch (firebaseError) {
+                    console.warn("Firebase connection failed, enabling offline mode:", firebaseError);
+                    enableOfflineMode();
+                    
+                    // 如果有离线用户数据，直接使用
+                    if (offlineUserData) {
+                        setupUserSession(offlineUserData);
+                    }
+                }
+
+                // 处理URL参数
+                const urlParams = new URLSearchParams(window.location.search);
+                const source = urlParams.get('source');
+
+                if (source === 'qrcode') {
+                    landingPageContainer.classList.add('hidden');
+                    registerPage.classList.remove('hidden');
+                } else {
+                    landingPageContainer.classList.remove('hidden');
+                    registerPage.classList.add('hidden');
+                }
+
             } catch (error) {
-                console.error("Firebase Initialization Error:", error);
-                document.getElementById('app').innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p></div>`;
+                console.error("App Initialization Error:", error);
+                // 即使出错也显示基本界面
+                enableOfflineMode();
+                
+                // 如果有离线用户数据，使用它
+                if (offlineUserData) {
+                    setupUserSession(offlineUserData);
+                }
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const source = urlParams.get('source');
+
+                if (source === 'qrcode') {
+                    landingPageContainer.classList.add('hidden');
+                    registerPage.classList.remove('hidden');
+                } else {
+                    landingPageContainer.classList.remove('hidden');
+                    registerPage.classList.add('hidden');
+                }
             }
         }
 
