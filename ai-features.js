@@ -5,9 +5,16 @@ class GeminiAI {
     constructor() {
         this.isInitialized = false;
         this.retryCount = 0;
-        this.maxRetries = API_CONFIG.REQUEST_CONFIG.MAX_RETRIES;
-        this.retryDelay = API_CONFIG.REQUEST_CONFIG.RETRY_DELAY;
-        this.timeout = API_CONFIG.REQUEST_CONFIG.TIMEOUT;
+        this.config = window.API_CONFIG || {};
+        this.aiFeatures = window.AI_FEATURES || {};
+        this.requestConfig = window.REQUEST_CONFIG || {
+            TIMEOUT: 10000,
+            MAX_RETRIES: 3,
+            RETRY_DELAY: 1000
+        };
+        this.maxRetries = this.requestConfig.MAX_RETRIES || 3;
+        this.retryDelay = this.requestConfig.RETRY_DELAY || 1000;
+        this.timeout = this.requestConfig.TIMEOUT || 10000;
         
         // 知识库内容
         this.knowledgeBase = `
@@ -30,12 +37,12 @@ class GeminiAI {
 
     // 初始化 AI 功能
     async initialize() {
-        if (!API_CONFIG.ENABLE_AI_FEATURES) {
+        if (!this.config.ENABLE_AI_FEATURES) {
             console.log('AI features are disabled in configuration');
             return false;
         }
 
-        if (!isApiKeyConfigured()) {
+        if (!this.config.GEMINI_API_KEY || this.config.GEMINI_API_KEY === "your-gemini-api-key-here") {
             console.warn('Gemini API key not configured');
             return false;
         }
@@ -103,7 +110,7 @@ class GeminiAI {
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
         try {
-            const apiUrl = `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`;
+            const apiUrl = `${this.config.GEMINI_API_URL}?key=${this.config.GEMINI_API_KEY}`;
             
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -163,9 +170,9 @@ class GeminiAI {
             
             case 429:
                 // 尝试使用备用端点
-                if (API_CONFIG.GEMINI_API_URL_FALLBACK && this.retryCount === 0) {
+                if (this.config.GEMINI_API_URL_FALLBACK && this.retryCount === 0) {
                     console.log('Rate limited, trying fallback endpoint...');
-                    const fallbackUrl = `${API_CONFIG.GEMINI_API_URL_FALLBACK}?key=${API_CONFIG.GEMINI_API_KEY}`;
+                    const fallbackUrl = `${this.config.GEMINI_API_URL_FALLBACK}?key=${this.config.GEMINI_API_KEY}`;
                     
                     try {
                         const fallbackResponse = await fetch(fallbackUrl, {
@@ -226,7 +233,7 @@ class GeminiAI {
 
     // 啤酒推荐功能
     async getBeerRecommendation(flavorPreference, language = 'en') {
-        if (!API_CONFIG.AI_FEATURES.BEER_RECOMMENDATION) {
+        if (!this.aiFeatures.BEER_RECOMMENDATION) {
             return this.getFallbackResponse('beer', language);
         }
 
@@ -243,7 +250,7 @@ class GeminiAI {
 
     // 个性化中奖消息
     async getPersonalizedWinMessage(prize, userName, language = 'en') {
-        if (!API_CONFIG.AI_FEATURES.PERSONALIZED_MESSAGES) {
+        if (!this.aiFeatures.PERSONALIZED_MESSAGES) {
             return this.getFallbackResponse('win', language);
         }
 
@@ -259,25 +266,28 @@ class GeminiAI {
     }
 
     // 创意建议功能
-    async getCreativeIdea(context, language = 'en') {
-        if (!API_CONFIG.AI_FEATURES.CREATIVE_IDEAS) {
+    async getCreativeSuggestion(language = 'en') {
+        if (!this.aiFeatures.CREATIVE_IDEAS) {
             return this.getFallbackResponse('idea', language);
         }
 
-        const prompt = language === 'zh' ? 
-            `作为1602品牌的创意顾问，请为用户提供一个有趣的创意建议或想法，可以是关于啤酒搭配、聚会活动、品鉴技巧或生活方式的建议。要求创意新颖、实用且与1602品牌相关。用中文回答。` :
-            `As a creative consultant for 1602 brand, please provide an interesting creative suggestion or idea for the user. It could be about beer pairing, party activities, tasting techniques, or lifestyle suggestions. The idea should be novel, practical, and related to the 1602 brand. Respond in English.`;
-
-        return await this.callGemini(prompt, { 
-            language, 
-            temperature: 1.0,
-            maxTokens: 400 
-        });
+        const prompt = `You are a cheerful AI assistant for '1602'. A user didn't win. To cheer them up, give a fun, short, creative suggestion. IMPORTANTLY, you must also tell them they can get another chance by spending RM60, and that big prizes are still waiting to be won. Language: ${language === 'zh' ? 'Chinese' : 'English'}.`;
+        
+        try {
+            return await this.callGemini(prompt, { 
+                language, 
+                temperature: 1.0,
+                maxTokens: 400 
+            });
+        } catch (error) {
+            console.error('Creative suggestion error:', error);
+            return this.getFallbackResponse('idea', language);
+        }
     }
 
     // 用户数据分析（管理面板用）
     async analyzeUserData(userData, language = 'en') {
-        if (!API_CONFIG.AI_FEATURES.USER_ANALYTICS) {
+        if (!this.aiFeatures.USER_ANALYTICS) {
             return this.getFallbackResponse('analytics', language);
         }
 
@@ -296,8 +306,8 @@ class GeminiAI {
     getStatus() {
         return {
             initialized: this.isInitialized,
-            apiConfigured: isApiKeyConfigured(),
-            featuresEnabled: API_CONFIG.AI_FEATURES,
+            apiConfigured: !!(this.config.GEMINI_API_KEY && this.config.GEMINI_API_KEY !== "your-gemini-api-key-here"),
+            featuresEnabled: this.aiFeatures,
             retryCount: this.retryCount,
             maxRetries: this.maxRetries
         };
