@@ -11,17 +11,19 @@ class GeminiAI {
             ENABLE_AI_FEATURES: false,
             GEMINI_API_KEY: '',
             GEMINI_API_URL: '',
-            GEMINI_API_URL_FALLBACK: ''
+            GEMINI_API_URL_FALLBACK: '',
+            AI_FEATURES: {},
+            REQUEST_CONFIG: {}
         };
         
-        this.aiFeatures = window.AI_FEATURES || {
+        this.aiFeatures = this.config.AI_FEATURES || {
             BEER_RECOMMENDATION: false,
             PERSONALIZED_MESSAGES: false,
             CREATIVE_IDEAS: false,
             USER_ANALYTICS: false
         };
         
-        this.requestConfig = window.REQUEST_CONFIG || {};
+        this.requestConfig = this.config.REQUEST_CONFIG || {};
         
         // 设置默认值
         this.maxRetries = this.requestConfig.MAX_RETRIES || 3;
