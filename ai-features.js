@@ -326,8 +326,16 @@ class GeminiAI {
     }
 }
 
-// 创建全局 AI 实例
-window.geminiAI = new GeminiAI();
+// 创建全局 AI 实例 - 延迟初始化
+window.geminiAI = null;
+
+// 初始化函数
+function initializeGeminiAI() {
+    if (!window.geminiAI) {
+        window.geminiAI = new GeminiAI();
+    }
+    return window.geminiAI;
+}
 
 // 兼容性函数 - 保持与现有代码的兼容性
 async function callGemini(prompt, loadingElement, contentElement, language = 'en') {
@@ -335,11 +343,13 @@ async function callGemini(prompt, loadingElement, contentElement, language = 'en
     if (contentElement) contentElement.classList.add('hidden');
 
     try {
-        const response = await window.geminiAI.callGemini(prompt, { language });
+        const ai = initializeGeminiAI();
+        const response = await ai.callGemini(prompt, { language });
         return response;
     } catch (error) {
         console.error('AI call failed:', error);
-        return window.geminiAI.getFallbackResponse(prompt, language);
+        const ai = initializeGeminiAI();
+        return ai.getFallbackResponse(prompt, language);
     } finally {
         if (loadingElement) loadingElement.classList.add('hidden');
         if (contentElement) contentElement.classList.remove('hidden');

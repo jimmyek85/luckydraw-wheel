@@ -461,7 +461,8 @@
             if (contentElement) contentElement.classList.add('hidden');
 
             try {
-                const result = await geminiAI.callAPI(prompt, knowledgeBaseContent, currentLang);
+                const ai = initializeGeminiAI();
+                const result = await ai.callGemini(prompt, { language: currentLang });
                 return result;
             } catch (error) {
                 console.error("Gemini API Error:", error);
@@ -597,7 +598,8 @@
 
                 if (!isOfflineMode) {
                     try {
-                        const aiDescription = await geminiAI.getPersonalizedWinMessage(prizeText, currentLang);
+                        const ai = initializeGeminiAI();
+                        const aiDescription = await ai.getPersonalizedWinMessage(prizeText, currentLang);
                         modalText.innerHTML += `<br/><br/><p class="text-sm italic text-purple-300">${aiDescription}</p>`;
                     } catch (error) {
                         console.error("AI message generation error:", error);
@@ -641,7 +643,8 @@
 
         geminiIdeaBtn.addEventListener('click', async () => {
             try {
-                const idea = await geminiAI.getCreativeSuggestion(currentLang);
+                const ai = initializeGeminiAI();
+                const idea = await ai.getCreativeSuggestion(currentLang);
                 modalText.textContent = idea;
                 geminiIdeaBtn.classList.add('hidden');
             } catch (error) {
@@ -844,8 +847,9 @@
 
         async function handleBeerRecommendation(flavor) {
             try {
-                const recommendationText = await geminiAI.getBeerRecommendation(flavor, currentLang);
-                beerRecommendation.textContent = recommendationText;
+                const ai = initializeGeminiAI();
+                const recommendationText = await ai.getBeerRecommendation(flavor, currentLang);
+                beerRecommendationContent.textContent = recommendationText;
                 beerRecommendation.classList.remove('hidden');
             } catch (error) {
                 console.error("Beer recommendation error:", error);
