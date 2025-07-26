@@ -5,13 +5,25 @@ class GeminiAI {
     constructor() {
         this.isInitialized = false;
         this.retryCount = 0;
-        this.config = window.API_CONFIG || {};
-        this.aiFeatures = window.AI_FEATURES || {};
-        this.requestConfig = window.REQUEST_CONFIG || {
-            TIMEOUT: 10000,
-            MAX_RETRIES: 3,
-            RETRY_DELAY: 1000
+        
+        // 安全地初始化配置对象
+        this.config = window.API_CONFIG || {
+            ENABLE_AI_FEATURES: false,
+            GEMINI_API_KEY: '',
+            GEMINI_API_URL: '',
+            GEMINI_API_URL_FALLBACK: ''
         };
+        
+        this.aiFeatures = window.AI_FEATURES || {
+            BEER_RECOMMENDATION: false,
+            PERSONALIZED_MESSAGES: false,
+            CREATIVE_IDEAS: false,
+            USER_ANALYTICS: false
+        };
+        
+        this.requestConfig = window.REQUEST_CONFIG || {};
+        
+        // 设置默认值
         this.maxRetries = this.requestConfig.MAX_RETRIES || 3;
         this.retryDelay = this.requestConfig.RETRY_DELAY || 1000;
         this.timeout = this.requestConfig.TIMEOUT || 10000;
