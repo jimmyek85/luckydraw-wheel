@@ -368,7 +368,6 @@
                 "Your feedback is valuable to us...": "Your feedback is valuable to us...",
                 "Submit Feedback": "Submit Feedback",
                 "Feedback submitted. Thank you!": "Feedback submitted. Thank you!",
-                "Wine Card": "Wine Card",
                 "Cash Voucher RM5": "Cash Voucher RM5",
                 "Online Voucher RM10": "Online Voucher RM10",
                 "Online Voucher RM20": "Online Voucher RM20",
@@ -436,7 +435,6 @@
                 "Your feedback is valuable to us...": "您的反馈对我们非常宝贵...",
                 "Submit Feedback": "提交反馈",
                 "Feedback submitted. Thank you!": "反馈已提交，谢谢您！",
-                "Wine Card": "酒卡",
                 "Cash Voucher RM5": "RM5 现金券",
                 "Online Voucher RM10": "RM10 线上券",
                 "Online Voucher RM20": "RM20 线上券",
@@ -553,7 +551,7 @@
 
         // Draw the wheel
         function drawWheel() {
-            const canvas = document.getElementById('wheel');
+            const canvas = document.getElementById('canvas');
             if (!canvas) return;
             
             const ctx = canvas.getContext('2d');
@@ -562,23 +560,38 @@
             const radius = 180;
             
             const prizes = [
-                { text: 'Wine Card', color: '#FF6B6B', textColor: '#FFFFFF' },
-                { text: 'Cash Voucher RM5', color: '#4ECDC4', textColor: '#FFFFFF' },
-                { text: 'Online Voucher RM10', color: '#45B7D1', textColor: '#FFFFFF' },
-                { text: 'Online Voucher RM20', color: '#96CEB4', textColor: '#FFFFFF' },
-                { text: 'New 330ml Can', color: '#FFEAA7', textColor: '#2D3436' },
-                { text: 'Free 660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF' },
-                { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436' },
-                { text: 'Cooler Bag', color: '#F7DC6F', textColor: '#2D3436' },
-                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF' },
-                { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436' },
-                { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436' },
-                { text: 'Thank You', color: '#82E0AA', textColor: '#2D3436' }
+                { text: 'Cash Voucher RM5', color: '#4ECDC4', textColor: '#FFFFFF', weight: 8 },
+                { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 8 },
+                { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 8 },
+                { text: 'Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 6 },
+                { text: 'Online Voucher RM10', color: '#45B7D1', textColor: '#FFFFFF', weight: 5 },
+                { text: 'Online Voucher RM20', color: '#96CEB4', textColor: '#FFFFFF', weight: 4 },
+                { text: 'New 330ml Can', color: '#FFEAA7', textColor: '#2D3436', weight: 5 },
+                { text: 'Free 660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 5 },
+                { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 5 },
+                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 1 }
             ];
             
-            const anglePerSlice = (2 * Math.PI) / prizes.length;
+            // Create weighted prize array for fair distribution
+            weightedPrizes = [];
+            prizes.forEach(prize => {
+                for (let i = 0; i < prize.weight; i++) {
+                    weightedPrizes.push(prize);
+                }
+            });
             
-            prizes.forEach((prize, index) => {
+            // Shuffle the weighted prizes for random distribution
+            for (let i = weightedPrizes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [weightedPrizes[i], weightedPrizes[j]] = [weightedPrizes[j], weightedPrizes[i]];
+            }
+            
+            // Take first 12 for the wheel display
+            const displayPrizes = weightedPrizes.slice(0, 12);
+            
+            const anglePerSlice = (2 * Math.PI) / displayPrizes.length;
+            
+            displayPrizes.forEach((prize, index) => {
                 const startAngle = index * anglePerSlice;
                 const endAngle = startAngle + anglePerSlice;
                 
@@ -606,6 +619,9 @@
         let nameElement, phoneElement, emailElement, addressElement, countryCodeElement;
         let userNameDisplayElement, chancesLeftElement;
         let landingPageContainer, registerPage, wheelPage;
+        
+        // Global prize configuration
+        let weightedPrizes = [];
 
         // Handle registration form submission
         async function handleRegistration(e) {
@@ -723,7 +739,7 @@
         async function spin() {
             const spinBtn = document.getElementById('spin-btn');
             const chancesLeftElement = document.getElementById('chances-left');
-            const wheel = document.getElementById('wheel');
+            const wheel = document.getElementById('canvas');
             const wrapper = document.getElementById('wheel-wrapper');
             
             // Check if all required elements exist
@@ -751,11 +767,10 @@
             setTimeout(() => {
                 wrapper.classList.remove('spinning-neon');
                 
-                // Determine prize based on rotation
-                const normalizedRotation = randomRotation % 360;
-                const prizeIndex = Math.floor((360 - normalizedRotation) / 30) % 12;
-                const prizes = ['Wine Card', 'Cash Voucher RM5', 'Online Voucher RM10', 'Online Voucher RM20', 'New 330ml Can', 'Free 660ml Bottle', '1602 Pen', 'Cooler Bag', '1602 Mug', 'Thank You', 'Spin Again!', 'Thank You'];
-                const wonPrize = prizes[prizeIndex];
+                // Use weighted probability system for fair prize distribution
+                const totalWeight = weightedPrizes.length;
+                const randomIndex = Math.floor(Math.random() * totalWeight);
+                const wonPrize = weightedPrizes[randomIndex].text;
                 
                 showPrizeModal(wonPrize);
                 spinBtn.disabled = false;
