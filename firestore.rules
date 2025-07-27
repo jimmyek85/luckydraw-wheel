@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 允许匿名用户读写用户数据
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    // 允许读取设置
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+    
+    // 允许读取知识库
+    match /knowledge/{knowledgeId} {
+      allow read, write: if true;
+    }
+    
+    // 允许写入反馈
+    match /feedback/{feedbackId} {
+      allow read, write: if true;
+    }
+    
+    // 允许读写所有其他文档（用于管理功能）
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

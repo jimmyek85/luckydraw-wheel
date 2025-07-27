@@ -45,6 +45,8 @@
                 <button class="tab-btn active font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-t-lg border-b-2 border-transparent" data-tab="dashboard">用户管理</button>
                 <button class="tab-btn font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-t-lg border-b-2 border-transparent" data-tab="announcement">活动公布栏</button>
                 <button class="tab-btn font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-t-lg border-b-2 border-transparent" data-tab="knowledge">AI 知识库</button>
+                <button class="tab-btn font-medium text-gray-500 hover:text-gray-700 px-3 py-2 rounded-t-lg border-b-2 border-transparent" data-tab="feedback">客户反馈</button>
+                <a href="dashboard.html" class="font-medium text-blue-600 hover:text-blue-800 px-3 py-2 rounded-t-lg border-b-2 border-transparent hover:border-blue-600 transition-colors">📊 数据可视化</a>
             </nav>
         </div>
 
@@ -113,18 +115,19 @@
                     <h2 class="text-xl font-semibold mb-4 text-gray-700">AI 知识库</h2>
                     <p class="text-sm text-gray-500 mb-4">在这里输入关于1602品牌、产品、活动优惠等信息。客户端的AI功能将会读取这些信息，以提供更精准、更具品牌特色的回复。</p>
                     <textarea id="knowledge-text" class="w-full h-64 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="例如：1602经典原味(Lager)是我们最畅销的啤酒，口感清爽，带有淡淡的麦芽香气..."></textarea>
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700">上传相关图片 (功能开发中)</label>
-                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                            <div class="space-y-1 text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                                <div class="flex text-sm text-gray-600"><p class="pl-1">图片上传功能需要配置Firebase Storage</p></div>
-                            </div>
-                        </div>
-                    </div>
                     <button id="save-knowledge-btn" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition flex items-center justify-center">
                         <span class="btn-text">保存知识库</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Feedback Tab -->
+            <div id="feedback-tab" class="tab-pane hidden">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">客户反馈</h2>
+                    <div id="feedback-list" class="space-y-4 max-h-[70vh] overflow-y-auto">
+                        <!-- Feedback items will be inserted here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -137,17 +140,14 @@
                 <h3 class="text-xl font-bold text-gray-800">✨ AI Event Summary</h3>
                 <button id="summary-modal-close-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
             </div>
-            <div id="summary-content" class="text-gray-700 space-y-2 prose max-w-none">
-                <!-- AI content will be injected here -->
-            </div>
+            <div id="summary-content" class="text-gray-700 space-y-2 prose max-w-none"></div>
             <div id="summary-loading" class="hidden">
                 <div class="loader"></div>
                 <p class="text-center text-gray-600">AI is analyzing the data, please wait...</p>
             </div>
         </div>
     </div>
-    <div id="add-user-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
-    </div>
+    <div id="add-user-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4"></div>
     <div id="confirm-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
         <div class="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-auto text-center">
             <h3 id="confirm-modal-title" class="text-lg font-bold text-gray-800 mb-4">请确认</h3>
@@ -164,19 +164,14 @@
                 <h3 id="user-detail-title" class="text-xl font-bold text-gray-800">用户详情</h3>
                 <button id="user-detail-close-btn" class="text-2xl leading-none">&times;</button>
             </div>
-            <div id="user-detail-content" class="text-gray-700 space-y-4">
-                <!-- User details will be injected here -->
-            </div>
+            <div id="user-detail-content" class="text-gray-700 space-y-4"></div>
         </div>
     </div>
     
-    <!-- API Configuration -->
-    <script src="config.js"></script>
-    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment, query, where, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, increment, query, where, onSnapshot, setDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY",
@@ -194,6 +189,7 @@
         const usersCollection = collection(db, 'users');
         const settingsCollection = collection(db, 'settings');
         const knowledgeCollection = collection(db, 'knowledge');
+        const feedbackCollection = collection(db, 'feedback');
 
         const usersTableBody = document.getElementById('users-table-body');
         const searchInput = document.getElementById('search-input');
@@ -230,16 +226,7 @@
             summaryLoading.classList.remove('hidden');
             summaryContent.classList.add('hidden');
 
-            // 检查 API 密钥是否已配置
-            if (!window.GEMINI_API_KEY) {
-                console.warn("Gemini API key not configured. Please set your API key in config.js");
-                summaryLoading.classList.add('hidden');
-                summaryContent.classList.remove('hidden');
-                summaryContent.innerHTML = "AI 功能暂时不可用，请在 config.js 中配置 API 密钥。";
-                return;
-            }
-
-            const apiKey = window.GEMINI_API_KEY;
+            const apiKey = ""; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -252,27 +239,17 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                if (!response.ok) throw new Error(`API call failed: ${response.status}`);
                 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`Gemini API Error: ${response.status} - ${errorText}`);
-                    
-                    let errorMessage = "AI 服务暂时不可用。";
-                    if (response.status === 403) {
-                        errorMessage = "API 密钥无效或已过期，请检查配置。";
-                    } else if (response.status === 429) {
-                        errorMessage = "API 调用次数已达上限，请稍后再试。";
-                    }
-                    
-                    summaryContent.innerHTML = errorMessage;
-                } else {
-                    const result = await response.json();
-                    const content = result.candidates?.[0]?.content?.parts?.[0]?.text || "AI 分析失败，请重试。";
-                    summaryContent.innerHTML = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+                const result = await response.json();
+                let text = "Sorry, the AI analysis failed. Please try again.";
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    text = result.candidates[0].content.parts[0].text;
                 }
+                return text;
             } catch (error) {
                 console.error("Gemini API Error:", error);
-                summaryContent.innerHTML = "AI 分析失败，请检查网络连接。";
+                return "An error occurred while contacting the AI. Please check the console.";
             } finally {
                 summaryLoading.classList.add('hidden');
                 summaryContent.classList.remove('hidden');
@@ -335,7 +312,12 @@
         async function fetchUsers() {
             onSnapshot(usersCollection, (snapshot) => {
                 const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                users.sort((a, b) => (b.joinDate?.toDate() || 0) - (a.joinDate?.toDate() || 0));
+                // FIXED: Robust sorting to handle non-Timestamp date fields
+                users.sort((a, b) => {
+                    const timeA = a.joinDate && typeof a.joinDate.toDate === 'function' ? a.joinDate.toDate().getTime() : 0;
+                    const timeB = b.joinDate && typeof b.joinDate.toDate === 'function' ? b.joinDate.toDate().getTime() : 0;
+                    return timeB - timeA;
+                });
                 renderTable(users);
             }, (error) => {
                 console.error("Firestore permission error in listener:", error);
@@ -674,6 +656,29 @@
                 }
             } catch(e){ console.error("Error loading settings:", e)}
         }
+        
+        async function fetchFeedback() {
+            const feedbackList = document.getElementById('feedback-list');
+            const q = query(feedbackCollection, orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                feedbackList.innerHTML = '';
+                if (snapshot.empty) {
+                    feedbackList.innerHTML = '<p class="text-gray-500 text-center">暂无反馈。</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const feedback = doc.data();
+                    const feedbackTime = feedback.timestamp?.toDate()?.toLocaleString() || 'N/A';
+                    const feedbackCard = document.createElement('div');
+                    feedbackCard.className = 'p-4 border rounded-md bg-gray-50';
+                    feedbackCard.innerHTML = `
+                        <p class="text-gray-800">${feedback.content}</p>
+                        <p class="text-xs text-gray-400 mt-2">from: ${feedback.userName || 'Anonymous'} (${feedback.userPhone}) - ${feedbackTime}</p>
+                    `;
+                    feedbackList.appendChild(feedbackCard);
+                });
+            });
+        }
 
 
         async function initializeAdminPanel() {
@@ -682,6 +687,7 @@
                 
                 await fetchUsers();
                 await loadSettings();
+                await fetchFeedback(); 
 
                 searchBtn.addEventListener('click', searchUser);
                 searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchUser(); });
@@ -728,3 +734,4 @@
     </script>
 </body>
 </html>
+

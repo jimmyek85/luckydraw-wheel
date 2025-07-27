@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1602 抽奖活动数据可视化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen p-4">
+        <!-- Header -->
+        <div class="card text-white p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">1602 抽奖活动实时数据</h1>
+                    <p class="text-blue-100">
+                        <span class="live-indicator pulse"></span>
+                        实时监控 - 最后更新: <span id="last-update">--</span>
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold" id="current-time">--:--:--</div>
+                    <div class="text-sm text-blue-100" id="current-date">----年--月--日</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">总参与人数</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-users">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-500 text-sm font-medium" id="users-growth">+0%</span>
+                    <span class="text-gray-500 text-sm">较昨日</span>
+                </div>
+            </div>
+
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">总抽奖次数</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-spins">0</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-500 text-sm font-medium" id="spins-growth">+0%</span>
+                    <span class="text-gray-500 text-sm">较昨日</span>
+                </div>
+            </div>
+
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">奖品发放数</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-prizes">0</p>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-500 text-sm font-medium" id="prizes-rate">0%</span>
+                    <span class="text-gray-500 text-sm">中奖率</span>
+                </div>
+            </div>
+
+            <div class="metric-card p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">今日新用户</p>
+                        <p class="text-3xl font-bold text-gray-800" id="today-users">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-blue-500 text-sm font-medium" id="today-growth">+0</span>
+                    <span class="text-gray-500 text-sm">新增</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- User Registration Trend -->
+            <div class="chart-container p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">用户注册趋势</h3>
+                <canvas id="userTrendChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Prize Distribution -->
+            <div class="chart-container p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">奖品分布</h3>
+                <canvas id="prizeChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Hourly Activity and Recent Users -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Hourly Activity -->
+            <div class="chart-container p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">24小时活动分布</h3>
+                <canvas id="hourlyChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="chart-container p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">最新活动</h3>
+                <div id="recent-activity" class="space-y-3 max-h-64 overflow-y-auto">
+                    <!-- Recent activities will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-gray-500">
+            <p>&copy; 2024 1602 Craft Beer. 数据可视化仪表板</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, onSnapshot, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY",
+            authDomain: "deductive-smile-408711.firebaseapp.com",
+            projectId: "deductive-smile-408711",
+            storageBucket: "deductive-smile-408711.appspot.com",
+            messagingSenderId: "209601875553",
+            appId: "1:209601875553:web:d4a9175622134295c06420",
+            measurementId: "G-R222P71DDD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userTrendChart, prizeChart, hourlyChart;
+        let allUsers = [];
+
+        // Initialize charts
+        function initCharts() {
+            // User Trend Chart
+            const userCtx = document.getElementById('userTrendChart').getContext('2d');
+            userTrendChart = new Chart(userCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '新用户注册',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Prize Distribution Chart
+            const prizeCtx = document.getElementById('prizeChart').getContext('2d');
+            prizeChart = new Chart(prizeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#ef4444', '#f97316', '#eab308', '#22c55e',
+                            '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Hourly Activity Chart
+            const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+            hourlyChart = new Chart(hourlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                    datasets: [{
+                        label: '活动次数',
+                        data: new Array(24).fill(0),
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderColor: '#22c55e',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update time display
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('zh-CN');
+            document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN');
+            document.getElementById('last-update').textContent = now.toLocaleTimeString('zh-CN');
+        }
+
+        // Calculate metrics
+        function calculateMetrics(users) {
+            const totalUsers = users.length;
+            const totalSpins = users.reduce((sum, user) => sum + (user.totalSpins || 0), 0);
+            const totalPrizes = users.reduce((sum, user) => sum + (user.prizes ? user.prizes.length : 0), 0);
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayUsers = users.filter(user => {
+                const userDate = user.createdAt?.toDate();
+                return userDate && userDate >= today;
+            }).length;
+
+            const prizesRate = totalSpins > 0 ? ((totalPrizes / totalSpins) * 100).toFixed(1) : 0;
+
+            // Update DOM
+            document.getElementById('total-users').textContent = totalUsers;
+            document.getElementById('total-spins').textContent = totalSpins;
+            document.getElementById('total-prizes').textContent = totalPrizes;
+            document.getElementById('today-users').textContent = todayUsers;
+            document.getElementById('prizes-rate').textContent = prizesRate + '%';
+            document.getElementById('today-growth').textContent = `+${todayUsers}`;
+        }
+
+        // Update user trend chart
+        function updateUserTrendChart(users) {
+            const last7Days = [];
+            const userCounts = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                date.setHours(0, 0, 0, 0);
+                
+                const nextDate = new Date(date);
+                nextDate.setDate(nextDate.getDate() + 1);
+                
+                const dayUsers = users.filter(user => {
+                    const userDate = user.createdAt?.toDate();
+                    return userDate && userDate >= date && userDate < nextDate;
+                }).length;
+                
+                last7Days.push(date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }));
+                userCounts.push(dayUsers);
+            }
+            
+            userTrendChart.data.labels = last7Days;
+            userTrendChart.data.datasets[0].data = userCounts;
+            userTrendChart.update();
+        }
+
+        // Update prize distribution chart
+        function updatePrizeChart(users) {
+            const prizeCount = {};
+            
+            users.forEach(user => {
+                if (user.prizes && user.prizes.length > 0) {
+                    user.prizes.forEach(prize => {
+                        prizeCount[prize] = (prizeCount[prize] || 0) + 1;
+                    });
+                }
+            });
+            
+            const labels = Object.keys(prizeCount);
+            const data = Object.values(prizeCount);
+            
+            prizeChart.data.labels = labels;
+            prizeChart.data.datasets[0].data = data;
+            prizeChart.update();
+        }
+
+        // Update hourly activity chart
+        function updateHourlyChart(users) {
+            const hourlyData = new Array(24).fill(0);
+            
+            users.forEach(user => {
+                if (user.createdAt) {
+                    const hour = user.createdAt.toDate().getHours();
+                    hourlyData[hour]++;
+                }
+            });
+            
+            hourlyChart.data.datasets[0].data = hourlyData;
+            hourlyChart.update();
+        }
+
+        // Update recent activity
+        function updateRecentActivity(users) {
+            const recentUsers = users
+                .filter(user => user.createdAt)
+                .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate())
+                .slice(0, 10);
+            
+            const activityHtml = recentUsers.map(user => {
+                const time = user.createdAt.toDate().toLocaleString('zh-CN');
+                const prizes = user.prizes && user.prizes.length > 0 ? 
+                    `获得: ${user.prizes.join(', ')}` : '暂无奖品';
+                
+                return `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium text-gray-800">${user.name}</p>
+                            <p class="text-sm text-gray-500">${prizes}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">${time}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('recent-activity').innerHTML = activityHtml || 
+                '<p class="text-gray-500 text-center">暂无活动记录</p>';
+        }
+
+        // Load and update data
+        async function loadData() {
+            try {
+                await signInAnonymously(auth);
+                
+                // Listen to users collection
+                const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+                onSnapshot(usersQuery, (snapshot) => {
+                    allUsers = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    calculateMetrics(allUsers);
+                    updateUserTrendChart(allUsers);
+                    updatePrizeChart(allUsers);
+                    updateHourlyChart(allUsers);
+                    updateRecentActivity(allUsers);
+                });
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            loadData();
+            updateTime();
+            setInterval(updateTime, 1000);
+        });
+    </script>
+</body>
+</html>
