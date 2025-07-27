@@ -563,11 +563,31 @@
         async function handleRegistration(e) {
             e.preventDefault();
             
-            const name = document.getElementById('name').value.trim();
-            const countryCode = document.getElementById('country-code').value;
-            const phone = document.getElementById('phone').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const address = document.getElementById('address').value.trim();
+            const nameElement = document.getElementById('name');
+            const phoneElement = document.getElementById('phone');
+            const emailElement = document.getElementById('email');
+            const addressElement = document.getElementById('address');
+            const countryCodeElement = document.getElementById('country-code');
+            const userNameDisplayElement = document.getElementById('user-name-display');
+            const chancesLeftElement = document.getElementById('chances-left');
+            const landingPageContainer = document.getElementById('landing-page-container');
+            const registerPage = document.getElementById('register-page');
+            const wheelPage = document.getElementById('wheel-page');
+            
+            // Check if all required elements exist
+            if (!nameElement || !phoneElement || !countryCodeElement || 
+                !userNameDisplayElement || !chancesLeftElement ||
+                !landingPageContainer || !registerPage || !wheelPage) {
+                console.error("Required DOM elements not found for registration");
+                alert("页面加载错误，请刷新页面重试");
+                return;
+            }
+            
+            const name = nameElement.value.trim();
+            const countryCode = countryCodeElement.value;
+            const phone = phoneElement.value.trim();
+            const email = emailElement ? emailElement.value.trim() : '';
+            const address = addressElement ? addressElement.value.trim() : '';
             
             if (!name || !phone) {
                 alert(langData[currentLang]["Please fill in required fields."] || "Please fill in required fields.");
@@ -587,8 +607,8 @@
                 
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    document.getElementById('user-name-display').textContent = userData.name;
-                    document.getElementById('chances-left').textContent = userData.chances || 0;
+                    userNameDisplayElement.textContent = userData.name;
+                    chancesLeftElement.textContent = userData.chances || 0;
                     alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
                 } else {
                     await setDoc(userRef, {
@@ -601,14 +621,15 @@
                         createdAt: new Date()
                     });
                     
-                    document.getElementById('user-name-display').textContent = name;
-                    document.getElementById('chances-left').textContent = '1';
+                    userNameDisplayElement.textContent = name;
+                    chancesLeftElement.textContent = '1';
                     alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
                 }
                 
                 // Switch to wheel page
-                document.getElementById('register-page').classList.add('hidden');
-                document.getElementById('wheel-page').classList.remove('hidden');
+                landingPageContainer.classList.add('hidden');
+                registerPage.classList.add('hidden');
+                wheelPage.classList.remove('hidden');
                 
             } catch (error) {
                 console.error("Registration error:", error);
@@ -619,7 +640,18 @@
         // Spin the wheel
         async function spin() {
             const spinBtn = document.getElementById('spin-btn');
-            const chancesLeft = parseInt(document.getElementById('chances-left').textContent);
+            const chancesLeftElement = document.getElementById('chances-left');
+            const wheel = document.getElementById('wheel');
+            const wrapper = document.getElementById('wheel-wrapper');
+            
+            // Check if all required elements exist
+            if (!spinBtn || !chancesLeftElement || !wheel || !wrapper) {
+                console.error("Required DOM elements not found for spin");
+                alert("页面加载错误，请刷新页面重试");
+                return;
+            }
+            
+            const chancesLeft = parseInt(chancesLeftElement.textContent);
             
             if (chancesLeft <= 0) {
                 alert("No chances left!");
@@ -629,8 +661,6 @@
             spinBtn.disabled = true;
             
             // Simulate spinning animation
-            const wheel = document.getElementById('wheel');
-            const wrapper = document.getElementById('wheel-wrapper');
             wrapper.classList.add('spinning-neon');
             
             const randomRotation = Math.random() * 360 + 1440; // At least 4 full rotations
@@ -650,26 +680,63 @@
                 
                 // Update chances
                 const newChances = wonPrize === 'Spin Again!' ? chancesLeft : chancesLeft - 1;
-                document.getElementById('chances-left').textContent = newChances;
+                chancesLeftElement.textContent = newChances;
                 
             }, 3000);
         }
 
-        // Show prize modal
+        // Show prize modal with AI-powered promotion
         function showPrizeModal(prize) {
             const modal = document.getElementById('result-modal');
             const title = document.getElementById('modal-title');
             const content = document.getElementById('modal-content');
+            const geminiIdeaBtn = document.getElementById('gemini-idea-btn');
             
             if (prize === 'Thank You') {
                 title.textContent = langData[currentLang]["Oh No..."] || "Oh No...";
-                content.innerHTML = `<p>${langData[currentLang]["Better luck next time!"] || "Better luck next time!"}</p>`;
+                content.innerHTML = `
+                    <p>${langData[currentLang]["Better luck next time!"] || "Better luck next time!"}</p>
+                    <div class="mt-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+                        <p class="text-sm text-white mb-2">🎯 别灰心！关注我们获得更多机会：</p>
+                        <div class="flex gap-2">
+                            <button onclick="window.open('https://www.facebook.com/1602craftbeer', '_blank')" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 px-3 rounded text-xs">
+                                Facebook
+                            </button>
+                            <button onclick="window.open('https://www.instagram.com/1602craftbeer', '_blank')" class="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-2 px-3 rounded text-xs">
+                                Instagram
+                            </button>
+                        </div>
+                    </div>
+                `;
+                geminiIdeaBtn.classList.remove('hidden');
             } else if (prize === 'Spin Again!') {
                 title.textContent = langData[currentLang]["Awesome!"] || "Awesome!";
-                content.innerHTML = `<p>${langData[currentLang]["You get another free spin!"] || "You get another free spin!"}</p>`;
+                content.innerHTML = `
+                    <p>${langData[currentLang]["You get another free spin!"] || "You get another free spin!"}</p>
+                    <div class="mt-4 p-3 bg-green-600 rounded-lg">
+                        <p class="text-sm text-white">🍀 幸运女神眷顾！分享给朋友一起来玩吧！</p>
+                        <button onclick="shareToFriends()" class="mt-2 w-full bg-green-700 hover:bg-green-800 text-white py-2 px-4 rounded text-sm">
+                            分享给朋友
+                        </button>
+                    </div>
+                `;
             } else {
                 title.textContent = langData[currentLang]["Congratulations!"] || "Congratulations!";
-                content.innerHTML = `<p>${langData[currentLang]["You won a"] || "You won a"} ${langData[currentLang][prize] || prize}!</p>`;
+                content.innerHTML = `
+                    <p>${langData[currentLang]["You won a"] || "You won a"} ${langData[currentLang][prize] || prize}!</p>
+                    <div class="mt-4 p-3 bg-yellow-600 rounded-lg">
+                        <p class="text-sm text-white mb-2">🎉 恭喜中奖！快来我们店里兑换奖品吧！</p>
+                        <div class="flex gap-2">
+                            <button onclick="getStoreLocation()" class="flex-1 bg-yellow-700 hover:bg-yellow-800 text-white py-2 px-3 rounded text-xs">
+                                店铺位置
+                            </button>
+                            <button onclick="callStore()" class="flex-1 bg-yellow-700 hover:bg-yellow-800 text-white py-2 px-3 rounded text-xs">
+                                联系我们
+                            </button>
+                        </div>
+                    </div>
+                `;
+                geminiIdeaBtn.classList.remove('hidden');
             }
             
             modal.classList.remove('hidden');
@@ -704,7 +771,7 @@
             modal.classList.remove('hidden');
         }
 
-        // Handle beer recommendation
+        // Handle beer recommendation with real Gemini AI
         async function handleBeerRecommendation(flavor) {
             const loading = document.getElementById('beer-loading');
             const recommendation = document.getElementById('beer-recommendation');
@@ -712,47 +779,220 @@
             loading.classList.remove('hidden');
             recommendation.classList.add('hidden');
             
-            // Simulate AI recommendation
-            setTimeout(() => {
+            try {
+                const apiKey = "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const prompt = `作为1602精酿啤酒的AI品鉴顾问，请为喜欢${flavor}口味的顾客推荐我们的产品。请用温馨友好的语调，包含以下内容：
+                1. 推荐具体的1602啤酒产品
+                2. 描述口感特点
+                3. 建议搭配场景
+                4. 鼓励顾客到店体验或关注我们的社交媒体
+                请用中文回复，控制在100字以内。`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: prompt }] }]
+                    })
+                });
+                
+                const data = await response.json();
+                const aiRecommendation = data.candidates[0].content.parts[0].text;
+                
+                loading.classList.add('hidden');
+                recommendation.classList.remove('hidden');
+                recommendation.innerHTML = `<p class="text-purple-300 italic">${aiRecommendation}</p>
+                    <div class="mt-4 p-3 bg-gray-700 rounded-lg">
+                        <p class="text-sm text-yellow-300">🎁 特别优惠：关注我们的Facebook获得RM2现金券！</p>
+                        <button onclick="window.open('https://www.facebook.com/1602craftbeer', '_blank')" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
+                            立即关注 Facebook
+                        </button>
+                    </div>`;
+                
+            } catch (error) {
+                console.error("AI recommendation error:", error);
                 loading.classList.add('hidden');
                 recommendation.classList.remove('hidden');
                 
-                const recommendations = {
-                    'Pale Ale': 'Based on your preference for fruity and light flavors, I recommend our 1602 Pale Ale! It features citrusy hop notes with a refreshing finish.',
-                    'Extra Dark': 'For rich and malty flavors, try our 1602 Extra Dark! It offers deep chocolate and coffee notes with a smooth, full-bodied taste.',
-                    'Lager': 'Our classic 1602 Lager is perfect for you! Clean, crisp, and refreshing with a balanced malt character.'
+                const fallbackRecommendations = {
+                    'Pale Ale': '🍺 推荐我们的1602淡色艾尔！清新果香，口感轻盈，非常适合初次尝试精酿啤酒的朋友。搭配海鲜或沙拉享用更佳！',
+                    'Extra Dark': '🍺 试试我们的1602黑啤！浓郁麦香，带有巧克力和咖啡的香气，口感醇厚。最适合搭配烧烤或甜点！',
+                    'Lager': '🍺 经典1602拉格啤酒！清爽干净，麦芽平衡，是聚会和日常放松的完美选择。冰镇后享用口感更佳！'
                 };
                 
-                recommendation.textContent = recommendations[flavor] || 'Try our signature 1602 beer selection!';
-            }, 2000);
-        }
-
-        // Submit feedback
-        async function submitFeedback() {
-            const textarea = document.getElementById('feedback-textarea');
-            const feedback = textarea.value.trim();
-            
-            if (!feedback) return;
-            
-            try {
-                await addDoc(collection(db, 'feedback'), {
-                    feedback: feedback,
-                    timestamp: new Date()
-                });
-                
-                alert(langData[currentLang]["Feedback submitted. Thank you!"] || "Feedback submitted. Thank you!");
-                textarea.value = '';
-                document.getElementById('feedback-modal').classList.add('hidden');
-            } catch (error) {
-                console.error("Error submitting feedback:", error);
-                alert("Failed to submit feedback. Please try again.");
+                recommendation.innerHTML = `<p class="text-purple-300 italic">${fallbackRecommendations[flavor]}</p>
+                    <div class="mt-4 p-3 bg-gray-700 rounded-lg">
+                        <p class="text-sm text-yellow-300">🎁 关注我们获得更多优惠！</p>
+                        <button onclick="window.open('https://www.facebook.com/1602craftbeer', '_blank')" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
+                            关注 Facebook
+                        </button>
+                    </div>`;
             }
         }
+
+        // AI-powered creative ideas for promotion
+        async function generateCreativeIdea() {
+            const geminiIdeaBtn = document.getElementById('gemini-idea-btn');
+            const geminiLoading = document.getElementById('gemini-loading');
+            const modalContent = document.getElementById('modal-content');
+            
+            geminiIdeaBtn.style.display = 'none';
+            geminiLoading.classList.remove('hidden');
+            
+            try {
+                const apiKey = "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const prompt = `作为1602精酿啤酒的营销AI助手，请为用户提供一个创意的推广建议。内容应该包括：
+                1. 一个有趣的啤酒相关活动建议
+                2. 如何在社交媒体上分享
+                3. 鼓励朋友参与的方式
+                4. 获得额外优惠的方法
+                请用轻松有趣的语调，中文回复，控制在80字以内。`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: prompt }] }]
+                    })
+                });
+                
+                const data = await response.json();
+                const aiIdea = data.candidates[0].content.parts[0].text;
+                
+                geminiLoading.classList.add('hidden');
+                
+                // Add AI idea to modal content
+                const ideaDiv = document.createElement('div');
+                ideaDiv.className = 'mt-4 p-4 bg-purple-600 rounded-lg';
+                ideaDiv.innerHTML = `
+                    <h4 class="text-white font-bold mb-2">🤖 AI创意建议</h4>
+                    <p class="text-purple-100 text-sm">${aiIdea}</p>
+                    <button onclick="shareAIIdea('${aiIdea.replace(/'/g, "\\'")}'))" class="mt-3 w-full bg-purple-700 hover:bg-purple-800 text-white py-2 px-4 rounded text-sm">
+                        分享这个创意
+                    </button>
+                `;
+                modalContent.appendChild(ideaDiv);
+                
+            } catch (error) {
+                console.error("AI idea generation error:", error);
+                geminiLoading.classList.add('hidden');
+                
+                const fallbackIdeas = [
+                    "🍻 拍张你和朋友的干杯照片，标记我们获得惊喜优惠！邀请3个朋友关注我们，你们都能获得特别折扣！",
+                    "🎉 在Instagram上分享你的1602时刻，使用#1602精酿 标签，有机会赢得免费啤酒品鉴套装！",
+                    "🌟 组织一场小型聚会，用1602啤酒招待朋友，拍照分享到朋友圈，我们会送你下次聚会的啤酒！"
+                ];
+                
+                const randomIdea = fallbackIdeas[Math.floor(Math.random() * fallbackIdeas.length)];
+                
+                const ideaDiv = document.createElement('div');
+                ideaDiv.className = 'mt-4 p-4 bg-purple-600 rounded-lg';
+                ideaDiv.innerHTML = `
+                    <h4 class="text-white font-bold mb-2">💡 创意建议</h4>
+                    <p class="text-purple-100 text-sm">${randomIdea}</p>
+                    <button onclick="shareAIIdea('${randomIdea.replace(/'/g, "\\'")}'))" class="mt-3 w-full bg-purple-700 hover:bg-purple-800 text-white py-2 px-4 rounded text-sm">
+                        分享这个创意
+                    </button>
+                `;
+                modalContent.appendChild(ideaDiv);
+            }
+        }
+        
+        // Share AI-generated idea
+        function shareAIIdea(idea) {
+            const shareText = `🍺 1602精酿啤酒AI推荐：${idea} 快来参加我们的幸运抽奖活动！`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '1602精酿啤酒 - AI创意分享',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('创意内容已复制到剪贴板！快去分享吧！');
+                });
+            }
+        }
+        
+        // Share to friends function
+        function shareToFriends() {
+            const shareText = '🍀 我在1602精酿啤酒抽奖中又获得了一次机会！快来一起参加吧！';
+            const shareUrl = window.location.href;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '1602精酿啤酒幸运抽奖',
+                    text: shareText,
+                    url: shareUrl
+                });
+            } else {
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+        }
+        
+        // Get store location
+        function getStoreLocation() {
+            const storeInfo = `
+                📍 1602精酿啤酒店铺位置：
+                地址：[请填入实际地址]
+                营业时间：周一至周日 11:00-23:00
+                电话：[请填入联系电话]
+            `;
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(() => {
+                    // 这里可以集成地图API显示路线
+                    alert(storeInfo + '\n\n正在为您规划路线...');
+                });
+            } else {
+                alert(storeInfo);
+            }
+        }
+        
+        // Call store function
+         function callStore() {
+             const phoneNumber = 'tel:+60123456789'; // 请替换为实际电话号码
+             window.location.href = phoneNumber;
+         }
+         
+         // Submit feedback
+         async function submitFeedback() {
+             const textarea = document.getElementById('feedback-textarea');
+             const feedback = textarea.value.trim();
+             
+             if (!feedback) return;
+             
+             try {
+                 await addDoc(collection(db, 'feedback'), {
+                     feedback: feedback,
+                     timestamp: new Date()
+                 });
+                 
+                 alert(langData[currentLang]["Feedback submitted. Thank you!"] || "Feedback submitted. Thank you!");
+                 textarea.value = '';
+                 document.getElementById('feedback-modal').classList.add('hidden');
+             } catch (error) {
+                 console.error("Error submitting feedback:", error);
+                 alert("Failed to submit feedback. Please try again.");
+             }
+         }
         
         // All other variables and functions are defined below but omitted for brevity.
         // The full, correct code is in the script.
         
         async function initApp() {
+            // Wait for DOM to be fully loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initApp);
+                return;
+            }
+            
             // FIXED: Moved all element lookups inside initApp to run after DOM is loaded
             const landingPageContainer = document.getElementById('landing-page-container');
             const registerPage = document.getElementById('register-page');
@@ -783,6 +1023,12 @@
             const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
             const feedbackTextarea = document.getElementById('feedback-textarea');
 
+            // Check if essential elements exist
+            if (!landingPageContainer || !registerPage || !wheelPage || !registerForm) {
+                console.error("Essential DOM elements not found");
+                return;
+            }
+
             try {
                 await signInAnonymously(auth);
                 console.log("Signed in anonymously to access Firestore.");
@@ -806,33 +1052,49 @@
                 populateCountryCodes();
                 drawWheel();
                 
-                registerForm.addEventListener('submit', handleRegistration);
-                spinBtn.addEventListener('click', spin);
-                modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
-                document.getElementById('tnc-btn').addEventListener('click', () => showGenericModal('tnc'));
-                document.getElementById('packages-btn').addEventListener('click', () => showGenericModal('packages'));
-                genericModalCloseBtn.addEventListener('click', () => genericModal.classList.add('hidden'));
-                document.getElementById('fast-track-btn').addEventListener('click', () => {
+                // Add event listeners with null checks
+                if (registerForm) registerForm.addEventListener('submit', handleRegistration);
+                if (spinBtn) spinBtn.addEventListener('click', spin);
+                if (modalCloseBtn && resultModal) modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
+                
+                const tncBtn = document.getElementById('tnc-btn');
+                const packagesBtn = document.getElementById('packages-btn');
+                const fastTrackBtn = document.getElementById('fast-track-btn');
+                const beerSommelierBtn = document.getElementById('beer-sommelier-btn');
+                const myPrizesBtn = document.getElementById('my-prizes-btn');
+                const feedbackBtn = document.getElementById('feedback-btn');
+                
+                if (tncBtn) tncBtn.addEventListener('click', () => showGenericModal('tnc'));
+                if (packagesBtn) packagesBtn.addEventListener('click', () => showGenericModal('packages'));
+                if (genericModalCloseBtn && genericModal) genericModalCloseBtn.addEventListener('click', () => genericModal.classList.add('hidden'));
+                if (fastTrackBtn) fastTrackBtn.addEventListener('click', () => {
                     landingPageContainer.classList.add('hidden');
                     registerPage.classList.remove('hidden');
                 });
-                document.getElementById('beer-sommelier-btn').addEventListener('click', () => {
+                if (beerSommelierBtn && beerModal && beerRecommendation) beerSommelierBtn.addEventListener('click', () => {
                     beerRecommendation.classList.add('hidden');
                     beerModal.classList.remove('hidden')
                 });
-                beerModalCloseBtn.addEventListener('click', () => beerModal.classList.add('hidden'));
+                if (beerModalCloseBtn && beerModal) beerModalCloseBtn.addEventListener('click', () => beerModal.classList.add('hidden'));
+                
                 document.querySelectorAll('.beer-flavor-btn').forEach(btn => {
                     btn.addEventListener('click', () => handleBeerRecommendation(btn.dataset.flavor));
                 });
-                document.getElementById('my-prizes-btn').addEventListener('click', () => showGenericModal('my-prizes'));
-                document.getElementById('feedback-btn').addEventListener('click', () => feedbackModal.classList.remove('hidden'));
-                feedbackModalCloseBtn.addEventListener('click', () => feedbackModal.classList.add('hidden'));
-                submitFeedbackBtn.addEventListener('click', submitFeedback);
-
+                
+                if (myPrizesBtn) myPrizesBtn.addEventListener('click', () => showGenericModal('my-prizes'));
+                if (feedbackBtn && feedbackModal) feedbackBtn.addEventListener('click', () => feedbackModal.classList.remove('hidden'));
+                if (feedbackModalCloseBtn && feedbackModal) feedbackModalCloseBtn.addEventListener('click', () => feedbackModal.classList.add('hidden'));
+                if (submitFeedbackBtn) submitFeedbackBtn.addEventListener('click', submitFeedback);
+                
+                // AI creative idea button
+                if (geminiIdeaBtn) geminiIdeaBtn.addEventListener('click', generateCreativeIdea);
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
-                document.getElementById('app').innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p></div>`;
+                const appElement = document.getElementById('app');
+                if (appElement) {
+                    appElement.innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p></div>`;
+                }
             }
         }
 
