@@ -78,6 +78,45 @@
 - ✅ 显示元素 (`user-name-display`, `chances-left`)
 - ✅ 页面容器 (`landing-page-container`, `register-page`, `wheel-page`)
 
+### 5. 轮盘显示错误和奖品比例配置
+**错误类型**: 显示错误和配置错误  
+**发现时间**: 2025-01-27  
+**错误描述**: 轮盘图片不显示，奖品比例分配不符合要求  
+**错误原因**: 
+1. JavaScript中使用错误的元素ID (`wheel`) 而HTML中实际ID为 (`canvas`)
+2. 奖品比例未按照新的分配要求更新
+
+**技术解决方案**:
+1. **轮盘显示修复**
+   - 修正 `drawWheel` 函数中的元素ID引用
+   - 修正 `spin` 函数中的元素ID引用
+   - 确保JavaScript正确获取canvas元素
+
+2. **奖品比例重新配置**
+   - 根据新的分配比例更新奖品权重
+   - 实现加权随机选择算法
+   - 移除已停用的奖品（酒卡Beer Card）
+
+**新的奖品分配比例** (基于50人测试):
+- 🚫 酒卡Beer Card: 0次 (已移除)
+- 💰 现金券RM5: 8次 (16%)
+- 💳 线上现金券RM10: 5次 (10%)
+- 💳 线上现金券RM20: 4次 (8%)
+- 🍺 新品Lager Smooth 1罐: 5次 (10%)
+- 🍺 660ml瓶装 1瓶: 5次 (10%)
+- ✏️ 1602纪念笔: 8次 (16%)
+- 🧊 1602保冷袋: 6次 (12%)
+- ☕ 1602纪念陶瓷杯: 1次 (2%)
+- 🙏 谢谢参与: 5次 (10%)
+- 🔄 再来一次: 8次 (16%)
+
+**修复的功能**:
+- ✅ 轮盘图片正常显示
+- ✅ 奖品权重分配正确
+- ✅ 加权随机选择算法
+- ✅ 移除废弃奖品项目
+- ✅ 更新语言数据
+
 ## 🔧 技术改进 (Technical Improvements)
 
 ### 错误处理机制
@@ -119,6 +158,14 @@
 - ✅ 页面切换无错误
 - ✅ 表单提交功能正常
 
+### 轮盘和奖品系统测试
+- ✅ 轮盘图片正常显示
+- ✅ Canvas元素ID引用正确
+- ✅ 奖品权重分配按新比例配置
+- ✅ 加权随机选择算法工作正常
+- ✅ 废弃奖品已移除
+- ✅ 语言数据已更新
+
 ### 浏览器兼容性
 - ✅ Chrome/Edge: 正常运行
 - ✅ 无控制台错误
@@ -137,6 +184,8 @@
 2. `Fix Firestore connection errors with enhanced error handling and retry mechanisms`
 3. `Update error fix report with Firestore connection error solutions`
 4. `Fix DOM elements not found error by moving element lookups to initApp function`
+5. `Update error fix report with DOM elements not found error solution`
+6. `Fix wheel display and update prize distribution according to new ratios`
 
 ## 🔮 未来建议 (Future Recommendations)
 
