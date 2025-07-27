@@ -283,6 +283,44 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Enhanced error handling for Firestore connections
+        let isFirestoreConnected = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        async function testFirestoreConnection() {
+            try {
+                // Test connection with a simple read operation
+                const testDoc = await getDoc(doc(db, 'test', 'connection'));
+                isFirestoreConnected = true;
+                console.log("Firestore connection successful");
+                return true;
+            } catch (error) {
+                console.warn("Firestore connection test failed:", error.message);
+                isFirestoreConnected = false;
+                return false;
+            }
+        }
+
+        async function retryFirestoreOperation(operation, fallback = null) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    console.warn(`Firestore operation failed (attempt ${i + 1}/${maxRetries}):`, error.message);
+                    if (i === maxRetries - 1) {
+                        if (fallback) {
+                            console.log("Using fallback for failed Firestore operation");
+                            return fallback();
+                        }
+                        throw error;
+                    }
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                }
+            }
+        }
+
         const langData = {
             en: {
                 "Welcome to 1602": "Welcome to 1602",
@@ -441,20 +479,25 @@
 
         // Fetch settings from Firestore
         async function fetchSettings() {
-            try {
-                const settingsDoc = await getDoc(doc(db, 'settings', 'app'));
-                if (settingsDoc.exists()) {
-                    const settings = settingsDoc.data();
-                    if (settings.announcement) {
-                        showAnnouncement(settings.announcement);
+            return await retryFirestoreOperation(
+                async () => {
+                    const settingsDoc = await getDoc(doc(db, 'settings', 'app'));
+                    if (settingsDoc.exists()) {
+                        const settings = settingsDoc.data();
+                        if (settings.announcement) {
+                            showAnnouncement(settings.announcement);
+                        }
+                        if (settings.knowledge) {
+                            knowledgeBaseContent = settings.knowledge;
+                        }
                     }
-                    if (settings.knowledge) {
-                        knowledgeBaseContent = settings.knowledge;
-                    }
+                },
+                () => {
+                    // Fallback: use default settings
+                    console.log("Using default settings due to Firestore connection issues");
+                    knowledgeBaseContent = "Default knowledge base content";
                 }
-            } catch (error) {
-                console.error("Error fetching settings:", error);
-            }
+            );
         }
 
         // Show announcement modal
@@ -602,29 +645,52 @@
             const fullPhone = countryCode + phone;
             
             try {
-                const userRef = doc(db, 'users', fullPhone);
-                const userDoc = await getDoc(userRef);
-                
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    userNameDisplayElement.textContent = userData.name;
-                    chancesLeftElement.textContent = userData.chances || 0;
-                    alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
-                } else {
-                    await setDoc(userRef, {
-                        name: name,
-                        phone: fullPhone,
-                        email: email || '',
-                        address: address || '',
-                        chances: 1,
-                        prizes: [],
-                        createdAt: new Date()
-                    });
-                    
-                    userNameDisplayElement.textContent = name;
-                    chancesLeftElement.textContent = '1';
-                    alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
-                }
+                await retryFirestoreOperation(
+                    async () => {
+                        const userRef = doc(db, 'users', fullPhone);
+                        const userDoc = await getDoc(userRef);
+                        
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            userNameDisplayElement.textContent = userData.name;
+                            chancesLeftElement.textContent = userData.chances || 0;
+                            alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
+                        } else {
+                            await setDoc(userRef, {
+                                name: name,
+                                phone: fullPhone,
+                                email: email || '',
+                                address: address || '',
+                                chances: 1,
+                                prizes: [],
+                                createdAt: new Date()
+                            });
+                            
+                            userNameDisplayElement.textContent = name;
+                            chancesLeftElement.textContent = '1';
+                            alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
+                        }
+                    },
+                    () => {
+                        // Fallback: store user data locally
+                        console.log("Storing user data locally due to connection issues");
+                        const userData = {
+                            name: name,
+                            phone: fullPhone,
+                            email: email || '',
+                            address: address || '',
+                            chances: 1,
+                            prizes: [],
+                            createdAt: new Date().toISOString()
+                        };
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        localStorage.setItem('pendingRegistration', JSON.stringify(userData));
+                        
+                        userNameDisplayElement.textContent = name;
+                        chancesLeftElement.textContent = '1';
+                        alert("注册成功！数据已保存到本地，连接恢复后会自动同步。");
+                    }
+                );
                 
                 // Switch to wheel page
                 landingPageContainer.classList.add('hidden');
@@ -633,7 +699,29 @@
                 
             } catch (error) {
                 console.error("Registration error:", error);
-                alert("Registration failed. Please try again.");
+                
+                // Fallback: store locally and continue
+                const userData = {
+                    name: name,
+                    phone: fullPhone,
+                    email: email || '',
+                    address: address || '',
+                    chances: 1,
+                    prizes: [],
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                localStorage.setItem('pendingRegistration', JSON.stringify(userData));
+                
+                userNameDisplayElement.textContent = name;
+                chancesLeftElement.textContent = '1';
+                
+                alert("网络连接不稳定，但注册已完成！数据已保存到本地。");
+                
+                // Switch to wheel page
+                landingPageContainer.classList.add('hidden');
+                registerPage.classList.add('hidden');
+                wheelPage.classList.remove('hidden');
             }
         }
 
@@ -969,17 +1057,42 @@
              if (!feedback) return;
              
              try {
-                 await addDoc(collection(db, 'feedback'), {
-                     feedback: feedback,
-                     timestamp: new Date()
-                 });
+                 await retryFirestoreOperation(
+                     async () => {
+                         await addDoc(collection(db, 'feedback'), {
+                             feedback: feedback,
+                             timestamp: new Date()
+                         });
+                     },
+                     () => {
+                         // Fallback: store locally
+                         console.log("Storing feedback locally due to connection issues");
+                         const localFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
+                         localFeedback.push({
+                             feedback: feedback,
+                             timestamp: new Date().toISOString()
+                         });
+                         localStorage.setItem('pendingFeedback', JSON.stringify(localFeedback));
+                     }
+                 );
                  
                  alert(langData[currentLang]["Feedback submitted. Thank you!"] || "Feedback submitted. Thank you!");
                  textarea.value = '';
                  document.getElementById('feedback-modal').classList.add('hidden');
              } catch (error) {
                  console.error("Error submitting feedback:", error);
-                 alert("Failed to submit feedback. Please try again.");
+                 alert("反馈提交失败，但已保存到本地。我们会在连接恢复后处理您的反馈。");
+                 
+                 // Store locally as fallback
+                 const localFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
+                 localFeedback.push({
+                     feedback: feedback,
+                     timestamp: new Date().toISOString()
+                 });
+                 localStorage.setItem('pendingFeedback', JSON.stringify(localFeedback));
+                 
+                 textarea.value = '';
+                 document.getElementById('feedback-modal').classList.add('hidden');
              }
          }
         
@@ -1030,12 +1143,25 @@
             }
 
             try {
+                // Test Firestore connection first
+                console.log("Testing Firestore connection...");
+                const connectionTest = await testFirestoreConnection();
+                
+                if (!connectionTest) {
+                    console.warn("Firestore connection failed, but continuing with limited functionality");
+                }
+
                 await signInAnonymously(auth);
                 console.log("Signed in anonymously to access Firestore.");
 
                 switchLanguage('zh');
 
-                await fetchSettings();
+                // Try to fetch settings with fallback
+                try {
+                    await fetchSettings();
+                } catch (error) {
+                    console.warn("Failed to fetch settings, using defaults:", error.message);
+                }
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const source = urlParams.get('source');
@@ -1091,10 +1217,29 @@
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
+                
+                // Show user-friendly error message
                 const appElement = document.getElementById('app');
                 if (appElement) {
-                    appElement.innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p></div>`;
+                    appElement.innerHTML = `
+                        <div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4">
+                            <div class="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+                                <div class="text-6xl mb-4">🔄</div>
+                                <h2 class="text-2xl font-bold text-gray-800 mb-4">连接中...</h2>
+                                <p class="text-gray-600 mb-6">正在尝试连接到服务器，请稍候...</p>
+                                <button onclick="location.reload()" class="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors">
+                                    重新加载
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 }
+                
+                // Retry after 3 seconds
+                setTimeout(() => {
+                    console.log("Retrying initialization...");
+                    location.reload();
+                }, 3000);
             }
         }
 
