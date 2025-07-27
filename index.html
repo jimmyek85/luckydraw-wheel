@@ -602,20 +602,14 @@
             });
         }
 
+        // Global DOM elements for registration
+        let nameElement, phoneElement, emailElement, addressElement, countryCodeElement;
+        let userNameDisplayElement, chancesLeftElement;
+        let landingPageContainer, registerPage, wheelPage;
+
         // Handle registration form submission
         async function handleRegistration(e) {
             e.preventDefault();
-            
-            const nameElement = document.getElementById('name');
-            const phoneElement = document.getElementById('phone');
-            const emailElement = document.getElementById('email');
-            const addressElement = document.getElementById('address');
-            const countryCodeElement = document.getElementById('country-code');
-            const userNameDisplayElement = document.getElementById('user-name-display');
-            const chancesLeftElement = document.getElementById('chances-left');
-            const landingPageContainer = document.getElementById('landing-page-container');
-            const registerPage = document.getElementById('register-page');
-            const wheelPage = document.getElementById('wheel-page');
             
             // Check if all required elements exist
             if (!nameElement || !phoneElement || !countryCodeElement || 
@@ -1106,10 +1100,19 @@
                 return;
             }
             
+            // Initialize global DOM elements for registration
+            nameElement = document.getElementById('name');
+            phoneElement = document.getElementById('phone');
+            emailElement = document.getElementById('email');
+            addressElement = document.getElementById('address');
+            countryCodeElement = document.getElementById('country-code');
+            userNameDisplayElement = document.getElementById('user-name-display');
+            chancesLeftElement = document.getElementById('chances-left');
+            landingPageContainer = document.getElementById('landing-page-container');
+            registerPage = document.getElementById('register-page');
+            wheelPage = document.getElementById('wheel-page');
+            
             // FIXED: Moved all element lookups inside initApp to run after DOM is loaded
-            const landingPageContainer = document.getElementById('landing-page-container');
-            const registerPage = document.getElementById('register-page');
-            const wheelPage = document.getElementById('wheel-page');
             const registerForm = document.getElementById('register-form');
             const spinBtn = document.getElementById('spin-btn');
             const chancesLeftSpan = document.getElementById('chances-left');
