@@ -376,6 +376,8 @@
                 "1602 Pen": "1602 Pen",
                 "Cooler Bag": "Cooler Bag",
                 "1602 Mug": "1602 Mug",
+                "Beer Card": "Beer Card",
+                "Wine Card": "Wine Card",
                 "Thank You": "Thank You",
                 "Spin Again!": "Spin Again!",
                 "Congratulations!": "Congratulations!",
@@ -443,6 +445,8 @@
                 "1602 Pen": "1602纪念笔",
                 "Cooler Bag": "保冷袋",
                 "1602 Mug": "纪念酒杯",
+                "Beer Card": "酒卡",
+                "Wine Card": "酒卡",
                 "Thank You": "谢谢参与",
                 "Spin Again!": "再来一次！",
                 "Congratulations!": "恭喜！",
@@ -569,10 +573,12 @@
                 { text: 'New 330ml Can', color: '#FFEAA7', textColor: '#2D3436', weight: 5 },
                 { text: 'Free 660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 5 },
                 { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 5 },
-                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 1 }
+                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 }, // 中奖率为0，但保留在轮盘上
+                { text: 'Beer Card', color: '#A29BFE', textColor: '#FFFFFF', weight: 0 }, // 中奖率为0，但保留在轮盘上
+                { text: 'Wine Card', color: '#E17055', textColor: '#FFFFFF', weight: 0 } // 中奖率为0，但保留在轮盘上
             ];
             
-            // Create weighted prize array for fair distribution
+            // Create weighted prize array for fair distribution (only for winning logic)
             weightedPrizes = [];
             prizes.forEach(prize => {
                 for (let i = 0; i < prize.weight; i++) {
@@ -586,8 +592,8 @@
                 [weightedPrizes[i], weightedPrizes[j]] = [weightedPrizes[j], weightedPrizes[i]];
             }
             
-            // Take first 12 for the wheel display
-            const displayPrizes = weightedPrizes.slice(0, 12);
+            // Display all prizes on the wheel (not just weighted ones)
+            const displayPrizes = prizes; // Show all prizes including those with weight 0
             
             const anglePerSlice = (2 * Math.PI) / displayPrizes.length;
             
