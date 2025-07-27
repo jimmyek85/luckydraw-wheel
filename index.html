@@ -92,15 +92,45 @@
             transition: box-shadow 0.5s ease-in-out;
         }
         .spinning-neon {
-            animation: neon-flicker 1.5s infinite alternate;
+            animation: rainbow-neon 2s infinite linear;
         }
-        @keyframes neon-flicker {
-          from {
-            box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #f0f, 0 0 40px #f0f, 0 0 50px #f0f, 0 0 60px #f0f, 0 0 70px #f0f;
+        @keyframes rainbow-neon {
+          0% {
+            box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000, 0 0 45px #ff0000, 0 0 60px #ff0000;
           }
-          to {
-            box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff, 0 0 25px #0ff, 0 0 30px #0ff, 0 0 35px #0ff;
+          14% {
+            box-shadow: 0 0 15px #ff8800, 0 0 30px #ff8800, 0 0 45px #ff8800, 0 0 60px #ff8800;
           }
+          28% {
+            box-shadow: 0 0 15px #ffff00, 0 0 30px #ffff00, 0 0 45px #ffff00, 0 0 60px #ffff00;
+          }
+          42% {
+            box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00, 0 0 45px #00ff00, 0 0 60px #00ff00;
+          }
+          57% {
+            box-shadow: 0 0 15px #0088ff, 0 0 30px #0088ff, 0 0 45px #0088ff, 0 0 60px #0088ff;
+          }
+          71% {
+            box-shadow: 0 0 15px #4400ff, 0 0 30px #4400ff, 0 0 45px #4400ff, 0 0 60px #4400ff;
+          }
+          85% {
+            box-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff, 0 0 45px #ff00ff, 0 0 60px #ff00ff;
+          }
+          100% {
+            box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000, 0 0 45px #ff0000, 0 0 60px #ff0000;
+          }
+        }
+        
+        /* Enhanced wheel styling */
+        #canvas {
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        
+        .wheel-container {
+            position: relative;
+            display: inline-block;
         }
     </style>
 </head>
@@ -601,22 +631,55 @@
                 const startAngle = index * anglePerSlice;
                 const endAngle = startAngle + anglePerSlice;
                 
+                // Draw slice
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
                 ctx.fillStyle = prize.color;
                 ctx.fill();
+                
+                // Add border for better definition
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Draw text
+                // Draw text - ensure it stays within the wheel
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(startAngle + anglePerSlice / 2);
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 ctx.fillStyle = prize.textColor;
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText(prize.text, radius * 0.7, 5);
+                
+                // Responsive font size based on text length
+                const textLength = prize.text.length;
+                let fontSize = 14;
+                if (textLength > 15) fontSize = 10;
+                else if (textLength > 10) fontSize = 12;
+                
+                ctx.font = `bold ${fontSize}px Arial`;
+                
+                // Position text closer to center to ensure it stays within wheel
+                const textRadius = radius * 0.6; // Reduced from 0.7 to 0.6
+                
+                // For longer text, split into multiple lines
+                if (textLength > 12) {
+                    const words = prize.text.split(' ');
+                    if (words.length > 1) {
+                        const midPoint = Math.ceil(words.length / 2);
+                        const line1 = words.slice(0, midPoint).join(' ');
+                        const line2 = words.slice(midPoint).join(' ');
+                        
+                        ctx.fillText(line1, textRadius, -fontSize/2);
+                        ctx.fillText(line2, textRadius, fontSize/2);
+                    } else {
+                        ctx.fillText(prize.text, textRadius, 0);
+                    }
+                } else {
+                    ctx.fillText(prize.text, textRadius, 0);
+                }
+                
                 ctx.restore();
             });
         }
