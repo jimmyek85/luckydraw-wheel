@@ -92,45 +92,15 @@
             transition: box-shadow 0.5s ease-in-out;
         }
         .spinning-neon {
-            animation: rainbow-neon 2s infinite linear;
+            animation: neon-flicker 1.5s infinite alternate;
         }
-        @keyframes rainbow-neon {
-          0% {
-            box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000, 0 0 45px #ff0000, 0 0 60px #ff0000;
+        @keyframes neon-flicker {
+          from {
+            box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #f0f, 0 0 40px #f0f, 0 0 50px #f0f, 0 0 60px #f0f, 0 0 70px #f0f;
           }
-          14% {
-            box-shadow: 0 0 15px #ff8800, 0 0 30px #ff8800, 0 0 45px #ff8800, 0 0 60px #ff8800;
+          to {
+            box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff, 0 0 25px #0ff, 0 0 30px #0ff, 0 0 35px #0ff;
           }
-          28% {
-            box-shadow: 0 0 15px #ffff00, 0 0 30px #ffff00, 0 0 45px #ffff00, 0 0 60px #ffff00;
-          }
-          42% {
-            box-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00, 0 0 45px #00ff00, 0 0 60px #00ff00;
-          }
-          57% {
-            box-shadow: 0 0 15px #0088ff, 0 0 30px #0088ff, 0 0 45px #0088ff, 0 0 60px #0088ff;
-          }
-          71% {
-            box-shadow: 0 0 15px #4400ff, 0 0 30px #4400ff, 0 0 45px #4400ff, 0 0 60px #4400ff;
-          }
-          85% {
-            box-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff, 0 0 45px #ff00ff, 0 0 60px #ff00ff;
-          }
-          100% {
-            box-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000, 0 0 45px #ff0000, 0 0 60px #ff0000;
-          }
-        }
-        
-        /* Enhanced wheel styling */
-        #canvas {
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-            transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
-        }
-        
-        .wheel-container {
-            position: relative;
-            display: inline-block;
         }
     </style>
 </head>
@@ -313,59 +283,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Enhanced error handling for Firestore connections
-        let isFirestoreConnected = false;
-        let retryCount = 0;
-        const maxRetries = 3;
-        let isOfflineMode = false;
-
-        async function testFirestoreConnection() {
-            try {
-                // Test connection with a simple read operation with timeout
-                const testPromise = getDoc(doc(db, 'test', 'connection'));
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Connection timeout')), 5000)
-                );
-                
-                await Promise.race([testPromise, timeoutPromise]);
-                isFirestoreConnected = true;
-                isOfflineMode = false;
-                console.log("Firestore connection successful");
-                return true;
-            } catch (error) {
-                console.warn("Firestore connection test failed:", error.message);
-                isFirestoreConnected = false;
-                isOfflineMode = true;
-                console.log("Switching to offline mode - all data will be stored locally");
-                return false;
-            }
-        }
-
-        async function retryFirestoreOperation(operation, fallback = null) {
-            if (isOfflineMode) {
-                console.log("Running in offline mode, using fallback");
-                return fallback ? fallback() : null;
-            }
-            
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    console.warn(`Firestore operation failed (attempt ${i + 1}/${maxRetries}):`, error.message);
-                    if (i === maxRetries - 1) {
-                        isOfflineMode = true;
-                        if (fallback) {
-                            console.log("Using fallback for failed Firestore operation");
-                            return fallback();
-                        }
-                        throw error;
-                    }
-                    // Wait before retry
-                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                }
-            }
-        }
-
         const langData = {
             en: {
                 "Welcome to 1602": "Welcome to 1602",
@@ -413,19 +330,21 @@
                 "Your feedback is valuable to us...": "Your feedback is valuable to us...",
                 "Submit Feedback": "Submit Feedback",
                 "Feedback submitted. Thank you!": "Feedback submitted. Thank you!",
+                "Wine Card": "Wine Card",
                 "Cash Voucher RM5": "Cash Voucher RM5",
                 "Online Voucher RM10": "Online Voucher RM10",
                 "Online Voucher RM20": "Online Voucher RM20",
-                "Online Voucher RM50": "Online Voucher RM50",
                 "New 330ml Can": "New 330ml Can",
                 "Free 660ml Bottle": "Free 660ml Bottle",
                 "1602 Pen": "1602 Pen",
                 "Cooler Bag": "Cooler Bag",
                 "1602 Mug": "1602 Mug",
-                "Beer Card": "Beer Card",
-                "Wine Card": "Wine Card",
                 "Thank You": "Thank You",
                 "Spin Again!": "Spin Again!",
+                "Beer Card": "Beer Card",
+                "330ml Lager Smooth": "330ml Lager Smooth",
+                "660ml Bottle": "660ml Bottle",
+                "1602 Cooler Bag": "1602 Cooler Bag",
                 "Congratulations!": "Congratulations!",
                 "Oh No...": "Oh No...",
                 "Awesome!": "Awesome!",
@@ -436,10 +355,7 @@
                 "User already exists. Loading your data...": "User already exists. Loading your data...",
                 "Registration successful!": "Registration successful!",
                 "Please fill in required fields.": "Please fill in required fields.",
-                "Please enter a valid phone number (digits only).": "Please enter a valid phone number (digits only).",
-                "Congratulations! Come to our booth to claim your prize!": "Congratulations! Come to our booth to claim your prize!",
-                "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!": "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!",
-                "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!": "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!"
+                "Please enter a valid phone number (digits only).": "Please enter a valid phone number (digits only)."
             },
             zh: {
                 "Welcome to 1602": "欢迎来到 1602",
@@ -486,6 +402,7 @@
                 "Your feedback is valuable to us...": "您的反馈对我们非常宝贵...",
                 "Submit Feedback": "提交反馈",
                 "Feedback submitted. Thank you!": "反馈已提交，谢谢您！",
+                "Wine Card": "酒卡",
                 "Cash Voucher RM5": "RM5 现金券",
                 "Online Voucher RM10": "RM10 线上券",
                 "Online Voucher RM20": "RM20 线上券",
@@ -494,10 +411,12 @@
                 "1602 Pen": "1602纪念笔",
                 "Cooler Bag": "保冷袋",
                 "1602 Mug": "纪念酒杯",
-                "Beer Card": "酒卡",
-                "Wine Card": "酒卡",
                 "Thank You": "谢谢参与",
                 "Spin Again!": "再来一次！",
+                "Beer Card": "酒卡",
+                "330ml Lager Smooth": "330ml新品Lager Smooth 1罐",
+                "660ml Bottle": "660ml瓶装 1瓶",
+                "1602 Cooler Bag": "1602保冷袋",
                 "Congratulations!": "恭喜！",
                 "Oh No...": "很遗憾...",
                 "Awesome!": "太棒了！",
@@ -508,10 +427,7 @@
                 "User already exists. Loading your data...": "用户已存在，正在加载您的数据...",
                 "Registration successful!": "注册成功！",
                 "Please fill in required fields.": "请填写必填项。",
-                "Please enter a valid phone number (digits only).": "请输入有效的电话号码（仅限数字）。",
-                "Congratulations! Come to our booth to claim your prize!": "恭喜中奖！快来我们档口兑换奖品吧！",
-                "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!": "访问我们的Facebook页面，来到1602档口扫码获大奖！",
-                "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!": "欢迎！快来参与我们1602档口的扫码活动，免费获得大奖！千万别错过！"
+                "Please enter a valid phone number (digits only).": "请输入有效的电话号码（仅限数字）。"
             }
         };
 
@@ -533,25 +449,20 @@
 
         // Fetch settings from Firestore
         async function fetchSettings() {
-            return await retryFirestoreOperation(
-                async () => {
-                    const settingsDoc = await getDoc(doc(db, 'settings', 'app'));
-                    if (settingsDoc.exists()) {
-                        const settings = settingsDoc.data();
-                        if (settings.announcement) {
-                            showAnnouncement(settings.announcement);
-                        }
-                        if (settings.knowledge) {
-                            knowledgeBaseContent = settings.knowledge;
-                        }
+            try {
+                const settingsDoc = await getDoc(doc(db, 'settings', 'app'));
+                if (settingsDoc.exists()) {
+                    const settings = settingsDoc.data();
+                    if (settings.announcement) {
+                        showAnnouncement(settings.announcement);
                     }
-                },
-                () => {
-                    // Fallback: use default settings
-                    console.log("Using default settings due to Firestore connection issues");
-                    knowledgeBaseContent = "Default knowledge base content";
+                    if (settings.knowledge) {
+                        knowledgeBaseContent = settings.knowledge;
+                    }
                 }
-            );
+            } catch (error) {
+                console.error("Error fetching settings:", error);
+            }
         }
 
         // Show announcement modal
@@ -607,7 +518,7 @@
 
         // Draw the wheel
         function drawWheel() {
-            const canvas = document.getElementById('canvas');
+            const canvas = document.getElementById('wheel');
             if (!canvas) return;
             
             const ctx = canvas.getContext('2d');
@@ -616,120 +527,54 @@
             const radius = 180;
             
             const prizes = [
-                { text: 'Wine Card', color: '#E91E63', textColor: '#FFFFFF', weight: 8 },           // Wine Card - 紫红色
-                { text: 'Cooler Bag', color: '#4CAF50', textColor: '#FFFFFF', weight: 10 },         // Cooler Bag - 绿色
-                { text: 'Online Voucher RM50', color: '#8BC34A', textColor: '#FFFFFF', weight: 3 }, // Online Voucher RM50 - 黄绿色
-                { text: 'Cash Voucher RM5', color: '#FFC107', textColor: '#2D3436', weight: 15 },   // Cash Voucher RM5 - 黄色
-                { text: 'Thank You', color: '#607D8B', textColor: '#FFFFFF', weight: 25 },          // Thank You - 灰色
-                { text: 'Online Voucher RM10', color: '#2196F3', textColor: '#FFFFFF', weight: 12 }, // Online Voucher RM10 - 蓝色
-                { text: 'Free 660ml Bottle', color: '#F44336', textColor: '#FFFFFF', weight: 6 },   // Free 660ml Bottle - 红色
-                { text: '1602 Mug', color: '#9C27B0', textColor: '#FFFFFF', weight: 10 },           // 1602 Mug - 紫色
-                { text: 'Spin Again!', color: '#FF9800', textColor: '#FFFFFF', weight: 18 },        // Spin Again! - 橙色
-                { text: 'Online Voucher RM20', color: '#009688', textColor: '#FFFFFF', weight: 8 }  // Online Voucher RM20 - 青绿色
+                { text: 'Beer Card', color: '#FF6B6B', textColor: '#FFFFFF', weight: 0 },
+                { text: 'Cash Voucher RM5', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
+                { text: 'Online Voucher RM10', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
+                { text: 'Online Voucher RM20', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
+                { text: '330ml Lager Smooth', color: '#FFEAA7', textColor: '#2D3436', weight: 9 },
+                { text: '660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 6 },
+                { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 12 },
+                { text: '1602 Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 12 },
+                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
+                { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 14 },
+                { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 16 }
             ];
             
-            // Create weighted prize array for fair distribution (only for winning logic)
-            weightedPrizes = [];
-            prizes.forEach(prize => {
-                for (let i = 0; i < prize.weight; i++) {
-                    weightedPrizes.push(prize);
-                }
-            });
+            const anglePerSlice = (2 * Math.PI) / prizes.length;
             
-            // Shuffle the weighted prizes for random distribution
-            for (let i = weightedPrizes.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [weightedPrizes[i], weightedPrizes[j]] = [weightedPrizes[j], weightedPrizes[i]];
-            }
-            
-            // Display all prizes on the wheel (not just weighted ones)
-            const displayPrizes = prizes; // Show all prizes including those with weight 0
-            
-            const anglePerSlice = (2 * Math.PI) / displayPrizes.length;
-            
-            displayPrizes.forEach((prize, index) => {
+            prizes.forEach((prize, index) => {
                 const startAngle = index * anglePerSlice;
                 const endAngle = startAngle + anglePerSlice;
                 
-                // Draw slice
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
                 ctx.fillStyle = prize.color;
                 ctx.fill();
-                
-                // Add border for better definition
-                ctx.strokeStyle = '#FFFFFF';
-                ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Draw text - ensure it stays within the wheel
+                // Draw text
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(startAngle + anglePerSlice / 2);
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
                 ctx.fillStyle = prize.textColor;
-                
-                // Responsive font size based on text length
-                const textLength = prize.text.length;
-                let fontSize = 14;
-                if (textLength > 15) fontSize = 10;
-                else if (textLength > 10) fontSize = 12;
-                
-                ctx.font = `bold ${fontSize}px Arial`;
-                
-                // Position text closer to center to ensure it stays within wheel
-                const textRadius = radius * 0.6; // Reduced from 0.7 to 0.6
-                
-                // For longer text, split into multiple lines
-                if (textLength > 12) {
-                    const words = prize.text.split(' ');
-                    if (words.length > 1) {
-                        const midPoint = Math.ceil(words.length / 2);
-                        const line1 = words.slice(0, midPoint).join(' ');
-                        const line2 = words.slice(midPoint).join(' ');
-                        
-                        ctx.fillText(line1, textRadius, -fontSize/2);
-                        ctx.fillText(line2, textRadius, fontSize/2);
-                    } else {
-                        ctx.fillText(prize.text, textRadius, 0);
-                    }
-                } else {
-                    ctx.fillText(prize.text, textRadius, 0);
-                }
-                
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText(prize.text, radius * 0.7, 5);
                 ctx.restore();
             });
         }
-
-        // Global DOM elements for registration
-        let nameElement, phoneElement, emailElement, addressElement, countryCodeElement;
-        let userNameDisplayElement, chancesLeftElement;
-        let landingPageContainer, registerPage, wheelPage;
-        
-        // Global prize configuration
-        let weightedPrizes = [];
 
         // Handle registration form submission
         async function handleRegistration(e) {
             e.preventDefault();
             
-            // Check if all required elements exist
-            if (!nameElement || !phoneElement || !countryCodeElement || 
-                !userNameDisplayElement || !chancesLeftElement ||
-                !landingPageContainer || !registerPage || !wheelPage) {
-                console.error("Required DOM elements not found for registration");
-                alert("页面加载错误，请刷新页面重试");
-                return;
-            }
-            
-            const name = nameElement.value.trim();
-            const countryCode = countryCodeElement.value;
-            const phone = phoneElement.value.trim();
-            const email = emailElement ? emailElement.value.trim() : '';
-            const address = addressElement ? addressElement.value.trim() : '';
+            const name = document.getElementById('name').value.trim();
+            const countryCode = document.getElementById('country-code').value;
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const address = document.getElementById('address').value.trim();
             
             if (!name || !phone) {
                 alert(langData[currentLang]["Please fill in required fields."] || "Please fill in required fields.");
@@ -744,101 +589,44 @@
             const fullPhone = countryCode + phone;
             
             try {
-                await retryFirestoreOperation(
-                    async () => {
-                        const userRef = doc(db, 'users', fullPhone);
-                        const userDoc = await getDoc(userRef);
-                        
-                        if (userDoc.exists()) {
-                            const userData = userDoc.data();
-                            userNameDisplayElement.textContent = userData.name;
-                            chancesLeftElement.textContent = userData.chances || 0;
-                            alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
-                        } else {
-                            await setDoc(userRef, {
-                                name: name,
-                                phone: fullPhone,
-                                email: email || '',
-                                address: address || '',
-                                chances: 1,
-                                prizes: [],
-                                createdAt: new Date()
-                            });
-                            
-                            userNameDisplayElement.textContent = name;
-                            chancesLeftElement.textContent = '1';
-                            alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
-                        }
-                    },
-                    () => {
-                        // Fallback: store user data locally
-                        console.log("Storing user data locally due to connection issues");
-                        const userData = {
-                            name: name,
-                            phone: fullPhone,
-                            email: email || '',
-                            address: address || '',
-                            chances: 1,
-                            prizes: [],
-                            createdAt: new Date().toISOString()
-                        };
-                        localStorage.setItem('currentUser', JSON.stringify(userData));
-                        localStorage.setItem('pendingRegistration', JSON.stringify(userData));
-                        
-                        userNameDisplayElement.textContent = name;
-                        chancesLeftElement.textContent = '1';
-                        alert("注册成功！数据已保存到本地，连接恢复后会自动同步。");
-                    }
-                );
+                const userRef = doc(db, 'users', fullPhone);
+                const userDoc = await getDoc(userRef);
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById('user-name-display').textContent = userData.name;
+                    document.getElementById('chances-left').textContent = userData.chances || 0;
+                    alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
+                } else {
+                    await setDoc(userRef, {
+                        name: name,
+                        phone: fullPhone,
+                        email: email || '',
+                        address: address || '',
+                        chances: 1,
+                        prizes: [],
+                        createdAt: new Date()
+                    });
+                    
+                    document.getElementById('user-name-display').textContent = name;
+                    document.getElementById('chances-left').textContent = '1';
+                    alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
+                }
                 
                 // Switch to wheel page
-                landingPageContainer.classList.add('hidden');
-                registerPage.classList.add('hidden');
-                wheelPage.classList.remove('hidden');
+                document.getElementById('register-page').classList.add('hidden');
+                document.getElementById('wheel-page').classList.remove('hidden');
                 
             } catch (error) {
                 console.error("Registration error:", error);
-                
-                // Fallback: store locally and continue
-                const userData = {
-                    name: name,
-                    phone: fullPhone,
-                    email: email || '',
-                    address: address || '',
-                    chances: 1,
-                    prizes: [],
-                    createdAt: new Date().toISOString()
-                };
-                localStorage.setItem('currentUser', JSON.stringify(userData));
-                localStorage.setItem('pendingRegistration', JSON.stringify(userData));
-                
-                userNameDisplayElement.textContent = name;
-                chancesLeftElement.textContent = '1';
-                
-                alert("网络连接不稳定，但注册已完成！数据已保存到本地。");
-                
-                // Switch to wheel page
-                landingPageContainer.classList.add('hidden');
-                registerPage.classList.add('hidden');
-                wheelPage.classList.remove('hidden');
+                alert("Registration failed. Please try again.");
             }
         }
 
         // Spin the wheel
         async function spin() {
             const spinBtn = document.getElementById('spin-btn');
-            const chancesLeftElement = document.getElementById('chances-left');
-            const wheel = document.getElementById('canvas');
-            const wrapper = document.getElementById('wheel-wrapper');
-            
-            // Check if all required elements exist
-            if (!spinBtn || !chancesLeftElement || !wheel || !wrapper) {
-                console.error("Required DOM elements not found for spin");
-                alert("页面加载错误，请刷新页面重试");
-                return;
-            }
-            
-            const chancesLeft = parseInt(chancesLeftElement.textContent);
+            const chancesLeft = parseInt(document.getElementById('chances-left').textContent);
             
             if (chancesLeft <= 0) {
                 alert("No chances left!");
@@ -848,6 +636,8 @@
             spinBtn.disabled = true;
             
             // Simulate spinning animation
+            const wheel = document.getElementById('wheel');
+            const wrapper = document.getElementById('wheel-wrapper');
             wrapper.classList.add('spinning-neon');
             
             const randomRotation = Math.random() * 360 + 1440; // At least 4 full rotations
@@ -856,73 +646,77 @@
             setTimeout(() => {
                 wrapper.classList.remove('spinning-neon');
                 
-                // Use weighted probability system for fair prize distribution
-                const totalWeight = weightedPrizes.length;
-                const randomIndex = Math.floor(Math.random() * totalWeight);
-                const wonPrize = weightedPrizes[randomIndex].text;
+                // Determine prize based on weighted probability
+                const wonPrize = selectPrizeByWeight();
                 
                 showPrizeModal(wonPrize);
                 spinBtn.disabled = false;
                 
                 // Update chances
                 const newChances = wonPrize === 'Spin Again!' ? chancesLeft : chancesLeft - 1;
-                chancesLeftElement.textContent = newChances;
+                document.getElementById('chances-left').textContent = newChances;
                 
             }, 3000);
         }
 
-        // Show prize modal with AI-powered promotion
+        // Select prize based on weight
+        function selectPrizeByWeight() {
+            const canvas = document.getElementById('wheel');
+            if (!canvas) return 'Thank You';
+            
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 180;
+            
+            const prizes = [
+                { text: 'Beer Card', color: '#FF6B6B', textColor: '#FFFFFF', weight: 0 },
+                { text: 'Cash Voucher RM5', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
+                { text: 'Online Voucher RM10', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
+                { text: 'Online Voucher RM20', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
+                { text: '330ml Lager Smooth', color: '#FFEAA7', textColor: '#2D3436', weight: 9 },
+                { text: '660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 6 },
+                { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 12 },
+                { text: '1602 Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 12 },
+                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
+                { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 14 },
+                { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 16 }
+            ];
+            
+            // Calculate total weight
+            const totalWeight = prizes.reduce((sum, prize) => sum + prize.weight, 0);
+            
+            // Generate random number
+            const random = Math.random() * totalWeight;
+            
+            // Find the selected prize
+            let currentWeight = 0;
+            for (const prize of prizes) {
+                currentWeight += prize.weight;
+                if (random <= currentWeight) {
+                    return prize.text;
+                }
+            }
+            
+            // Fallback
+            return 'Thank You';
+        }
+
+        // Show prize modal
         function showPrizeModal(prize) {
             const modal = document.getElementById('result-modal');
             const title = document.getElementById('modal-title');
             const content = document.getElementById('modal-content');
-            const geminiIdeaBtn = document.getElementById('gemini-idea-btn');
             
             if (prize === 'Thank You') {
                 title.textContent = langData[currentLang]["Oh No..."] || "Oh No...";
-                content.innerHTML = `
-                    <p>${langData[currentLang]["Better luck next time!"] || "Better luck next time!"}</p>
-                    <div class="mt-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
-                        <p class="text-sm text-white mb-2">🎯 别灰心！关注我们获得更多机会：</p>
-                        <div class="flex gap-2">
-                            <button onclick="window.open('https://www.facebook.com/1602craftbeer', '_blank')" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 px-3 rounded text-xs">
-                                Facebook
-                            </button>
-                            <button onclick="window.open('https://www.instagram.com/1602craftbeer', '_blank')" class="flex-1 bg-pink-600 hover:bg-pink-700 text-white py-2 px-3 rounded text-xs">
-                                Instagram
-                            </button>
-                        </div>
-                    </div>
-                `;
-                geminiIdeaBtn.classList.remove('hidden');
+                content.innerHTML = `<p>${langData[currentLang]["Better luck next time!"] || "Better luck next time!"}</p>`;
             } else if (prize === 'Spin Again!') {
                 title.textContent = langData[currentLang]["Awesome!"] || "Awesome!";
-                content.innerHTML = `
-                    <p>${langData[currentLang]["You get another free spin!"] || "You get another free spin!"}</p>
-                    <div class="mt-4 p-3 bg-green-600 rounded-lg">
-                        <p class="text-sm text-white">🍀 幸运女神眷顾！分享给朋友一起来玩吧！</p>
-                        <button onclick="shareToFriends()" class="mt-2 w-full bg-green-700 hover:bg-green-800 text-white py-2 px-4 rounded text-sm">
-                            分享给朋友
-                        </button>
-                    </div>
-                `;
+                content.innerHTML = `<p>${langData[currentLang]["You get another free spin!"] || "You get another free spin!"}</p>`;
             } else {
                 title.textContent = langData[currentLang]["Congratulations!"] || "Congratulations!";
-                content.innerHTML = `
-                    <p>${langData[currentLang]["You won a"] || "You won a"} ${langData[currentLang][prize] || prize}!</p>
-                    <p class="text-lg font-bold text-yellow-400 mt-2">${langData[currentLang]["Congratulations! Come to our booth to claim your prize!"] || "Congratulations! Come to our booth to claim your prize!"}</p>
-                    <div class="mt-4 p-3 bg-yellow-600 rounded-lg">
-                        <div class="flex gap-2">
-                            <button onclick="getStoreLocation()" class="flex-1 bg-yellow-700 hover:bg-yellow-800 text-white py-2 px-3 rounded text-xs">
-                                ${currentLang === 'en' ? 'Store Location' : '店铺位置'}
-                            </button>
-                            <button onclick="callStore()" class="flex-1 bg-yellow-700 hover:bg-yellow-800 text-white py-2 px-3 rounded text-xs">
-                                ${currentLang === 'en' ? 'Contact Us' : '联系我们'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-                geminiIdeaBtn.classList.remove('hidden');
+                content.innerHTML = `<p>${langData[currentLang]["You won a"] || "You won a"} ${langData[currentLang][prize] || prize}!</p>`;
             }
             
             modal.classList.remove('hidden');
@@ -957,7 +751,7 @@
             modal.classList.remove('hidden');
         }
 
-        // Handle beer recommendation with real Gemini AI
+        // Handle beer recommendation
         async function handleBeerRecommendation(flavor) {
             const loading = document.getElementById('beer-loading');
             const recommendation = document.getElementById('beer-recommendation');
@@ -965,287 +759,51 @@
             loading.classList.remove('hidden');
             recommendation.classList.add('hidden');
             
-            try {
-                const apiKey = "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                
-                const prompt = `作为1602精酿啤酒的AI品鉴顾问，请为喜欢${flavor}口味的顾客推荐我们的产品。请用温馨友好的语调，包含以下内容：
-                1. 推荐具体的1602啤酒产品
-                2. 描述口感特点
-                3. 建议搭配场景
-                4. 鼓励顾客到店体验或关注我们的社交媒体
-                请用中文回复，控制在100字以内。`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ role: "user", parts: [{ text: prompt }] }]
-                    })
-                });
-                
-                const data = await response.json();
-                const aiRecommendation = data.candidates[0].content.parts[0].text;
-                
-                loading.classList.add('hidden');
-                recommendation.classList.remove('hidden');
-                recommendation.innerHTML = `<p class="text-purple-300 italic">${aiRecommendation}</p>
-                    <div class="mt-4 p-3 bg-gray-700 rounded-lg">
-                        <p class="text-sm text-yellow-300">🎁 特别优惠：关注我们的Facebook获得RM2现金券！</p>
-                        <button onclick="window.open('https://www.facebook.com/1602craftbeer', '_blank')" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
-                            立即关注 Facebook
-                        </button>
-                    </div>`;
-                
-            } catch (error) {
-                console.error("AI recommendation error:", error);
+            // Simulate AI recommendation
+            setTimeout(() => {
                 loading.classList.add('hidden');
                 recommendation.classList.remove('hidden');
                 
-                const fallbackRecommendations = {
-                    'Pale Ale': '🍺 推荐我们的1602淡色艾尔！清新果香，口感轻盈，非常适合初次尝试精酿啤酒的朋友。搭配海鲜或沙拉享用更佳！',
-                    'Extra Dark': '🍺 试试我们的1602黑啤！浓郁麦香，带有巧克力和咖啡的香气，口感醇厚。最适合搭配烧烤或甜点！',
-                    'Lager': '🍺 经典1602拉格啤酒！清爽干净，麦芽平衡，是聚会和日常放松的完美选择。冰镇后享用口感更佳！'
+                const recommendations = {
+                    'Pale Ale': 'Based on your preference for fruity and light flavors, I recommend our 1602 Pale Ale! It features citrusy hop notes with a refreshing finish.',
+                    'Extra Dark': 'For rich and malty flavors, try our 1602 Extra Dark! It offers deep chocolate and coffee notes with a smooth, full-bodied taste.',
+                    'Lager': 'Our classic 1602 Lager is perfect for you! Clean, crisp, and refreshing with a balanced malt character.'
                 };
                 
-                recommendation.innerHTML = `<p class="text-purple-300 italic">${fallbackRecommendations[flavor]}</p>
-                    <div class="mt-4 p-3 bg-gray-700 rounded-lg">
-                        <p class="text-sm text-yellow-300">🎁 关注我们获得更多优惠！</p>
-                        <button onclick="window.open('https://www.facebook.com/1602craftbeer', '_blank')" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
-                            关注 Facebook
-                        </button>
-                    </div>`;
-            }
+                recommendation.textContent = recommendations[flavor] || 'Try our signature 1602 beer selection!';
+            }, 2000);
         }
 
-        // AI-powered creative ideas for promotion
-        async function generateCreativeIdea() {
-            const geminiIdeaBtn = document.getElementById('gemini-idea-btn');
-            const geminiLoading = document.getElementById('gemini-loading');
-            const modalContent = document.getElementById('modal-content');
+        // Submit feedback
+        async function submitFeedback() {
+            const textarea = document.getElementById('feedback-textarea');
+            const feedback = textarea.value.trim();
             
-            geminiIdeaBtn.style.display = 'none';
-            geminiLoading.classList.remove('hidden');
+            if (!feedback) return;
             
             try {
-                const apiKey = "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                
-                const prompt = `作为1602精酿啤酒的营销AI助手，请为用户提供一个创意的推广建议。内容应该包括：
-                1. 一个有趣的啤酒相关活动建议
-                2. 如何在社交媒体上分享
-                3. 鼓励朋友参与的方式
-                4. 获得额外优惠的方法
-                请用轻松有趣的语调，中文回复，控制在80字以内。`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ role: "user", parts: [{ text: prompt }] }]
-                    })
+                await addDoc(collection(db, 'feedback'), {
+                    feedback: feedback,
+                    timestamp: new Date()
                 });
                 
-                const data = await response.json();
-                const aiIdea = data.candidates[0].content.parts[0].text;
-                
-                geminiLoading.classList.add('hidden');
-                
-                // Add AI idea to modal content
-                const ideaDiv = document.createElement('div');
-                ideaDiv.className = 'mt-4 p-4 bg-purple-600 rounded-lg';
-                ideaDiv.innerHTML = `
-                    <h4 class="text-white font-bold mb-2">🤖 AI创意建议</h4>
-                    <p class="text-purple-100 text-sm">${aiIdea}</p>
-                    <button onclick="shareAIIdea('${aiIdea.replace(/'/g, "\\'")}'))" class="mt-3 w-full bg-purple-700 hover:bg-purple-800 text-white py-2 px-4 rounded text-sm">
-                        分享这个创意
-                    </button>
-                `;
-                modalContent.appendChild(ideaDiv);
-                
+                alert(langData[currentLang]["Feedback submitted. Thank you!"] || "Feedback submitted. Thank you!");
+                textarea.value = '';
+                document.getElementById('feedback-modal').classList.add('hidden');
             } catch (error) {
-                console.error("AI idea generation error:", error);
-                geminiLoading.classList.add('hidden');
-                
-                const fallbackIdeas = [
-                    "🍻 拍张你和朋友的干杯照片，标记我们获得惊喜优惠！邀请3个朋友关注我们，你们都能获得特别折扣！",
-                    "🎉 在Instagram上分享你的1602时刻，使用#1602精酿 标签，有机会赢得免费啤酒品鉴套装！",
-                    "🌟 组织一场小型聚会，用1602啤酒招待朋友，拍照分享到朋友圈，我们会送你下次聚会的啤酒！"
-                ];
-                
-                const randomIdea = fallbackIdeas[Math.floor(Math.random() * fallbackIdeas.length)];
-                
-                const ideaDiv = document.createElement('div');
-                ideaDiv.className = 'mt-4 p-4 bg-purple-600 rounded-lg';
-                ideaDiv.innerHTML = `
-                    <h4 class="text-white font-bold mb-2">💡 创意建议</h4>
-                    <p class="text-purple-100 text-sm">${randomIdea}</p>
-                    <button onclick="shareAIIdea('${randomIdea.replace(/'/g, "\\'")}'))" class="mt-3 w-full bg-purple-700 hover:bg-purple-800 text-white py-2 px-4 rounded text-sm">
-                        分享这个创意
-                    </button>
-                `;
-                modalContent.appendChild(ideaDiv);
+                console.error("Error submitting feedback:", error);
+                alert("Failed to submit feedback. Please try again.");
             }
         }
-        
-        // Share function for social media
-        function share(platform) {
-            const shareText = langData[currentLang]["Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!"] || "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!";
-            const whatsappText = langData[currentLang]["Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!"] || "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!";
-            const shareUrl = window.location.href;
-            
-            switch(platform) {
-                case 'facebook':
-                    window.open('https://www.facebook.com/1602craftbeer', '_blank');
-                    // Show message about QR code scanning
-                    setTimeout(() => {
-                        alert(shareText);
-                    }, 1000);
-                    break;
-                case 'instagram':
-                    // Copy text to clipboard for Instagram sharing
-                    navigator.clipboard.writeText(shareText + ' ' + shareUrl).then(() => {
-                        alert(langData[currentLang]["Copied to clipboard!"] || "Copied to clipboard!");
-                        window.open('https://www.instagram.com/1602craftbeer', '_blank');
-                    });
-                    break;
-                case 'copy_whatsapp':
-                    // Open WhatsApp with message
-                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText + ' ' + shareUrl)}`;
-                    window.open(whatsappUrl, '_blank');
-                    break;
-            }
-        }
-
-        // Share AI-generated idea
-        function shareAIIdea(idea) {
-            const shareText = `🍺 1602精酿啤酒AI推荐：${idea} 快来参加我们的幸运抽奖活动！`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: '1602精酿啤酒 - AI创意分享',
-                    text: shareText,
-                    url: window.location.href
-                });
-            } else {
-                navigator.clipboard.writeText(shareText).then(() => {
-                    alert('创意内容已复制到剪贴板！快去分享吧！');
-                });
-            }
-        }
-        
-        // Share to friends function
-        function shareToFriends() {
-            const shareText = '🍀 我在1602精酿啤酒抽奖中又获得了一次机会！快来一起参加吧！';
-            const shareUrl = window.location.href;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: '1602精酿啤酒幸运抽奖',
-                    text: shareText,
-                    url: shareUrl
-                });
-            } else {
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
-                window.open(whatsappUrl, '_blank');
-            }
-        }
-        
-        // Get store location
-        function getStoreLocation() {
-            const storeInfo = `
-                📍 1602精酿啤酒店铺位置：
-                地址：[请填入实际地址]
-                营业时间：周一至周日 11:00-23:00
-                电话：[请填入联系电话]
-            `;
-            
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(() => {
-                    // 这里可以集成地图API显示路线
-                    alert(storeInfo + '\n\n正在为您规划路线...');
-                });
-            } else {
-                alert(storeInfo);
-            }
-        }
-        
-        // Call store function
-         function callStore() {
-             const phoneNumber = 'tel:+60123456789'; // 请替换为实际电话号码
-             window.location.href = phoneNumber;
-         }
-         
-         // Submit feedback
-         async function submitFeedback() {
-             const textarea = document.getElementById('feedback-textarea');
-             const feedback = textarea.value.trim();
-             
-             if (!feedback) return;
-             
-             try {
-                 await retryFirestoreOperation(
-                     async () => {
-                         await addDoc(collection(db, 'feedback'), {
-                             feedback: feedback,
-                             timestamp: new Date()
-                         });
-                     },
-                     () => {
-                         // Fallback: store locally
-                         console.log("Storing feedback locally due to connection issues");
-                         const localFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
-                         localFeedback.push({
-                             feedback: feedback,
-                             timestamp: new Date().toISOString()
-                         });
-                         localStorage.setItem('pendingFeedback', JSON.stringify(localFeedback));
-                     }
-                 );
-                 
-                 alert(langData[currentLang]["Feedback submitted. Thank you!"] || "Feedback submitted. Thank you!");
-                 textarea.value = '';
-                 document.getElementById('feedback-modal').classList.add('hidden');
-             } catch (error) {
-                 console.error("Error submitting feedback:", error);
-                 alert("反馈提交失败，但已保存到本地。我们会在连接恢复后处理您的反馈。");
-                 
-                 // Store locally as fallback
-                 const localFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
-                 localFeedback.push({
-                     feedback: feedback,
-                     timestamp: new Date().toISOString()
-                 });
-                 localStorage.setItem('pendingFeedback', JSON.stringify(localFeedback));
-                 
-                 textarea.value = '';
-                 document.getElementById('feedback-modal').classList.add('hidden');
-             }
-         }
         
         // All other variables and functions are defined below but omitted for brevity.
         // The full, correct code is in the script.
         
         async function initApp() {
-            // Wait for DOM to be fully loaded
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initApp);
-                return;
-            }
-            
-            // Initialize global DOM elements for registration
-            nameElement = document.getElementById('name');
-            phoneElement = document.getElementById('phone');
-            emailElement = document.getElementById('email');
-            addressElement = document.getElementById('address');
-            countryCodeElement = document.getElementById('country-code');
-            userNameDisplayElement = document.getElementById('user-name-display');
-            chancesLeftElement = document.getElementById('chances-left');
-            landingPageContainer = document.getElementById('landing-page-container');
-            registerPage = document.getElementById('register-page');
-            wheelPage = document.getElementById('wheel-page');
-            
             // FIXED: Moved all element lookups inside initApp to run after DOM is loaded
+            const landingPageContainer = document.getElementById('landing-page-container');
+            const registerPage = document.getElementById('register-page');
+            const wheelPage = document.getElementById('wheel-page');
             const registerForm = document.getElementById('register-form');
             const spinBtn = document.getElementById('spin-btn');
             const chancesLeftSpan = document.getElementById('chances-left');
@@ -1272,32 +830,13 @@
             const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
             const feedbackTextarea = document.getElementById('feedback-textarea');
 
-            // Check if essential elements exist
-            if (!landingPageContainer || !registerPage || !wheelPage || !registerForm) {
-                console.error("Essential DOM elements not found");
-                return;
-            }
-
             try {
-                // Test Firestore connection first
-                console.log("Testing Firestore connection...");
-                const connectionTest = await testFirestoreConnection();
-                
-                if (!connectionTest) {
-                    console.warn("Firestore connection failed, but continuing with limited functionality");
-                }
-
                 await signInAnonymously(auth);
                 console.log("Signed in anonymously to access Firestore.");
 
                 switchLanguage('zh');
 
-                // Try to fetch settings with fallback
-                try {
-                    await fetchSettings();
-                } catch (error) {
-                    console.warn("Failed to fetch settings, using defaults:", error.message);
-                }
+                await fetchSettings();
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const source = urlParams.get('source');
@@ -1314,75 +853,33 @@
                 populateCountryCodes();
                 drawWheel();
                 
-                // Add event listeners with null checks
-                if (registerForm) registerForm.addEventListener('submit', handleRegistration);
-                if (spinBtn) spinBtn.addEventListener('click', spin);
-                if (modalCloseBtn && resultModal) modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
-                
-                const tncBtn = document.getElementById('tnc-btn');
-                const packagesBtn = document.getElementById('packages-btn');
-                const fastTrackBtn = document.getElementById('fast-track-btn');
-                const beerSommelierBtn = document.getElementById('beer-sommelier-btn');
-                const myPrizesBtn = document.getElementById('my-prizes-btn');
-                const feedbackBtn = document.getElementById('feedback-btn');
-                
-                if (tncBtn) tncBtn.addEventListener('click', () => showGenericModal('tnc'));
-                if (packagesBtn) packagesBtn.addEventListener('click', () => showGenericModal('packages'));
-                if (genericModalCloseBtn && genericModal) genericModalCloseBtn.addEventListener('click', () => genericModal.classList.add('hidden'));
-                if (fastTrackBtn) fastTrackBtn.addEventListener('click', () => {
+                registerForm.addEventListener('submit', handleRegistration);
+                spinBtn.addEventListener('click', spin);
+                modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
+                document.getElementById('tnc-btn').addEventListener('click', () => showGenericModal('tnc'));
+                document.getElementById('packages-btn').addEventListener('click', () => showGenericModal('packages'));
+                genericModalCloseBtn.addEventListener('click', () => genericModal.classList.add('hidden'));
+                document.getElementById('fast-track-btn').addEventListener('click', () => {
                     landingPageContainer.classList.add('hidden');
                     registerPage.classList.remove('hidden');
                 });
-                if (beerSommelierBtn && beerModal && beerRecommendation) beerSommelierBtn.addEventListener('click', () => {
+                document.getElementById('beer-sommelier-btn').addEventListener('click', () => {
                     beerRecommendation.classList.add('hidden');
                     beerModal.classList.remove('hidden')
                 });
-                if (beerModalCloseBtn && beerModal) beerModalCloseBtn.addEventListener('click', () => beerModal.classList.add('hidden'));
-                
+                beerModalCloseBtn.addEventListener('click', () => beerModal.classList.add('hidden'));
                 document.querySelectorAll('.beer-flavor-btn').forEach(btn => {
                     btn.addEventListener('click', () => handleBeerRecommendation(btn.dataset.flavor));
                 });
-                
-                if (myPrizesBtn) myPrizesBtn.addEventListener('click', () => showGenericModal('my-prizes'));
-                if (feedbackBtn && feedbackModal) feedbackBtn.addEventListener('click', () => feedbackModal.classList.remove('hidden'));
-                if (feedbackModalCloseBtn && feedbackModal) feedbackModalCloseBtn.addEventListener('click', () => feedbackModal.classList.add('hidden'));
-                if (submitFeedbackBtn) submitFeedbackBtn.addEventListener('click', submitFeedback);
-                
-                // AI creative idea button
-                if (geminiIdeaBtn) geminiIdeaBtn.addEventListener('click', generateCreativeIdea);
-                
-                // Language toggle buttons
-                const enBtn = document.getElementById('en-btn');
-                const zhBtn = document.getElementById('zh-btn');
-                
-                if (enBtn) enBtn.addEventListener('click', () => switchLanguage('en'));
-                if (zhBtn) zhBtn.addEventListener('click', () => switchLanguage('zh'));
+                document.getElementById('my-prizes-btn').addEventListener('click', () => showGenericModal('my-prizes'));
+                document.getElementById('feedback-btn').addEventListener('click', () => feedbackModal.classList.remove('hidden'));
+                feedbackModalCloseBtn.addEventListener('click', () => feedbackModal.classList.add('hidden'));
+                submitFeedbackBtn.addEventListener('click', submitFeedback);
+
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
-                
-                // Show user-friendly error message
-                const appElement = document.getElementById('app');
-                if (appElement) {
-                    appElement.innerHTML = `
-                        <div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4">
-                            <div class="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-                                <div class="text-6xl mb-4">🔄</div>
-                                <h2 class="text-2xl font-bold text-gray-800 mb-4">连接中...</h2>
-                                <p class="text-gray-600 mb-6">正在尝试连接到服务器，请稍候...</p>
-                                <button onclick="location.reload()" class="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors">
-                                    重新加载
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Retry after 3 seconds
-                setTimeout(() => {
-                    console.log("Retrying initialization...");
-                    location.reload();
-                }, 3000);
+                document.getElementById('app').innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p></div>`;
             }
         }
 
