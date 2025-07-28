@@ -317,28 +317,43 @@
         let isFirestoreConnected = false;
         let retryCount = 0;
         const maxRetries = 3;
+        let isOfflineMode = false;
 
         async function testFirestoreConnection() {
             try {
-                // Test connection with a simple read operation
-                const testDoc = await getDoc(doc(db, 'test', 'connection'));
+                // Test connection with a simple read operation with timeout
+                const testPromise = getDoc(doc(db, 'test', 'connection'));
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Connection timeout')), 5000)
+                );
+                
+                await Promise.race([testPromise, timeoutPromise]);
                 isFirestoreConnected = true;
+                isOfflineMode = false;
                 console.log("Firestore connection successful");
                 return true;
             } catch (error) {
                 console.warn("Firestore connection test failed:", error.message);
                 isFirestoreConnected = false;
+                isOfflineMode = true;
+                console.log("Switching to offline mode - all data will be stored locally");
                 return false;
             }
         }
 
         async function retryFirestoreOperation(operation, fallback = null) {
+            if (isOfflineMode) {
+                console.log("Running in offline mode, using fallback");
+                return fallback ? fallback() : null;
+            }
+            
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     return await operation();
                 } catch (error) {
                     console.warn(`Firestore operation failed (attempt ${i + 1}/${maxRetries}):`, error.message);
                     if (i === maxRetries - 1) {
+                        isOfflineMode = true;
                         if (fallback) {
                             console.log("Using fallback for failed Firestore operation");
                             return fallback();
