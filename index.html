@@ -232,23 +232,24 @@
                 const prize = selectPrize();
                 
                 try {
-                    // Update user data
-                    if (currentUser) {
-                        const updates = {
-                            lastSpin: serverTimestamp(),
-                            prizes: arrayUnion({
-                                prize: prize,
-                                timestamp: serverTimestamp()
-                            })
-                        };
-                        
-                        if (prize !== '再来一次！') {
-                            updates.chances = Math.max(0, chancesLeft - 1);
-                            document.getElementById('chances-left').textContent = updates.chances;
-                        }
-                        
-                        await updateDoc(doc(db, 'users', currentUser.id), updates);
-                    }
+                     // Update user data
+                     if (currentUser) {
+                         const now = new Date();
+                         const updates = {
+                             lastSpin: serverTimestamp(),
+                             prizes: arrayUnion({
+                                 prize: prize,
+                                 timestamp: now
+                             })
+                         };
+                         
+                         if (prize !== '再来一次！') {
+                             updates.chances = Math.max(0, chancesLeft - 1);
+                             document.getElementById('chances-left').textContent = updates.chances;
+                         }
+                         
+                         await updateDoc(doc(db, 'users', currentUser.id), updates);
+                     }
                     
                     showResult(prize);
                 } catch (error) {
