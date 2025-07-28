@@ -1,405 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1602 Lucky Draw</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #1a202c;
-            color: #f7fafc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
-        .wheel-container {
+        .wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
             position: relative;
-            width: 400px;
-            height: 400px;
-            margin: auto;
+            overflow: hidden;
+            border: 8px solid #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
         }
-        
-        /* 添加外圈霓虹灯装饰 */
-        .wheel-container::before {
-            content: '';
+        .wheel-segment {
             position: absolute;
-            top: -15px;
-            left: -15px;
-            right: -15px;
-            bottom: -15px;
-            border-radius: 50%;
-            background: transparent;
-            border: 2px solid transparent;
-            background-image: linear-gradient(45deg, #ff0080, #00ff80, #8000ff, #ff8000);
-            background-size: 400% 400%;
-            animation: gradient-rotate 3s ease infinite;
-            z-index: -1;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
         }
-        
-        .wheel-container::after {
-            content: '';
+        .wheel-text {
             position: absolute;
-            top: -25px;
-            left: -25px;
-            right: -25px;
-            bottom: -25px;
-            border-radius: 50%;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.5),
-                inset 0 0 20px rgba(255, 0, 255, 0.3);
-            animation: outer-glow 4s ease-in-out infinite alternate;
-            z-index: -2;
-        }
-        
-        @keyframes gradient-rotate {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes outer-glow {
-            from {
-                box-shadow: 
-                    0 0 20px rgba(0, 255, 255, 0.5),
-                    inset 0 0 20px rgba(255, 0, 255, 0.3);
-            }
-            to {
-                box-shadow: 
-                    0 0 40px rgba(255, 0, 255, 0.8),
-                    inset 0 0 40px rgba(0, 255, 255, 0.5);
-            }
-        }
-        #canvas {
-            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+            top: 20%;
+            left: 10%;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         .pointer {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 50px;
-            height: 50px;
-            background: radial-gradient(circle, #ff8a8a, #f56565);
-            border: 5px solid white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-        .pointer::after {
-            content: '';
-            position: absolute;
-            top: -15px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 15px solid white;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ff4444;
+            z-index: 10;
         }
-        .modal-bg {
-            background-color: rgba(0,0,0,0.7);
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #3498db;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        #landing-page-container {
-            background: #0d0d0d;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            animation: fadeIn 1s ease-in-out;
-            position: relative;
-            overflow: hidden;
-        }
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(253, 224, 71, 0.2);
-            animation: float 25s infinite linear;
-            bottom: -50px;
-        }
-        @keyframes float {
-            0% { transform: translateY(0) translateX(0); opacity: 0.5; }
-            100% { transform: translateY(-100vh) translateX(var(--x-end)); opacity: 0; }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        #wheel-wrapper {
-            border-radius: 50%;
-            transition: box-shadow 0.5s ease-in-out;
-            /* 常亮的霓虹边框 */
-            box-shadow: 
-                0 0 10px #00ffff,
-                0 0 20px #00ffff,
-                0 0 30px #00ffff,
-                0 0 40px #00ffff,
-                inset 0 0 10px #00ffff;
-            border: 3px solid #00ffff;
-            animation: neon-glow 2s ease-in-out infinite alternate;
-        }
-        
-        /* 常亮霓虹灯效果 */
-        @keyframes neon-glow {
-            from {
-                box-shadow: 
-                    0 0 10px #00ffff,
-                    0 0 20px #00ffff,
-                    0 0 30px #00ffff,
-                    0 0 40px #00ffff,
-                    inset 0 0 10px #00ffff;
-                border-color: #00ffff;
-            }
-            to {
-                box-shadow: 
-                    0 0 15px #ff00ff,
-                    0 0 25px #ff00ff,
-                    0 0 35px #ff00ff,
-                    0 0 45px #ff00ff,
-                    inset 0 0 15px #ff00ff;
-                border-color: #ff00ff;
-            }
-        }
-        
-        /* 旋转时的闪烁霓虹效果 */
-        .spinning-neon {
-            animation: neon-flicker 0.3s infinite, neon-glow 2s ease-in-out infinite alternate;
-        }
-        
-        @keyframes neon-flicker {
-            0% {
-                box-shadow: 
-                    0 0 20px #ff0000,
-                    0 0 30px #ff0000,
-                    0 0 40px #ff0000,
-                    0 0 50px #ff0000,
-                    0 0 60px #ff0000,
-                    inset 0 0 20px #ff0000;
-                border-color: #ff0000;
-            }
-            25% {
-                box-shadow: 
-                    0 0 20px #00ff00,
-                    0 0 30px #00ff00,
-                    0 0 40px #00ff00,
-                    0 0 50px #00ff00,
-                    0 0 60px #00ff00,
-                    inset 0 0 20px #00ff00;
-                border-color: #00ff00;
-            }
-            50% {
-                box-shadow: 
-                    0 0 20px #0000ff,
-                    0 0 30px #0000ff,
-                    0 0 40px #0000ff,
-                    0 0 50px #0000ff,
-                    0 0 60px #0000ff,
-                    inset 0 0 20px #0000ff;
-                border-color: #0000ff;
-            }
-            75% {
-                box-shadow: 
-                    0 0 20px #ffff00,
-                    0 0 30px #ffff00,
-                    0 0 40px #ffff00,
-                    0 0 50px #ffff00,
-                    0 0 60px #ffff00,
-                    inset 0 0 20px #ffff00;
-                border-color: #ffff00;
-            }
-            100% {
-                box-shadow: 
-                    0 0 20px #ff00ff,
-                    0 0 30px #ff00ff,
-                    0 0 40px #ff00ff,
-                    0 0 50px #ff00ff,
-                    0 0 60px #ff00ff,
-                    inset 0 0 20px #ff00ff;
-                border-color: #ff00ff;
-            }
+        .spin-animation {
+            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-
-    <div id="app" class="w-full max-w-md mx-auto">
-
-        <!-- Language Switcher -->
-        <div class="text-center mb-4">
-            <button id="lang-en" class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm">English</button>
-            <button id="lang-zh" class="px-3 py-1 bg-gray-600 text-white rounded-md text-sm">中文</button>
+<body>
+    <div id="app" class="min-h-screen flex items-center justify-center p-4">
+        <!-- Landing Page -->
+        <div id="landing-page" class="text-center text-white max-w-md">
+            <h1 class="text-4xl font-bold mb-6">欢迎来到 1602</h1>
+            <p class="text-xl mb-8">扫码有惊喜！</p>
+            <button id="enter-btn" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg text-xl">
+                快捷通道
+            </button>
         </div>
 
-        <!-- Engaging Landing Page -->
-        <div id="landing-page-container">
-            <div id="particles-container"></div>
-            <div id="landing-page" class="text-center relative z-10">
-                <h1 class="text-4xl font-bold mb-2 text-yellow-300" data-lang-en="A Surprise Awaits!">A Surprise Awaits!</h1>
-                <p class="text-lg mb-4 text-white" data-lang-en="Meeting is fate, a gift is our bond.">Meeting is fate, a gift is our bond.</p>
-                <div class="bg-white p-2 rounded-lg inline-block my-4 shadow-lg">
-                     <img src="https://storage2.me-qr.com/qr/231358832.png" alt="1602 Lucky Draw QR Code" class="w-48 h-48">
-                </div>
-                <p class="mt-4 text-sm text-gray-300" data-lang-en="Scan or Click Below to Join!">Scan or Click Below to Join!</p>
-                <button id="fast-track-btn" class="mt-6 w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105" data-lang-en="Enter Now">Enter Now</button>
-            </div>
-        </div>
-
-        <!-- Registration Form -->
-        <div id="register-page" class="hidden">
-            <h2 class="text-2xl font-bold text-center mb-4" data-lang-en="Become a 1602 Member">Become a 1602 Member</h2>
-            <p class="text-center mb-6 text-gray-300" data-lang-en="Fill in your details to get 1 free spin!">Fill in your details to get 1 free spin!</p>
+        <!-- Registration Page -->
+        <div id="register-page" class="hidden bg-white rounded-lg p-8 max-w-md w-full">
+            <h2 class="text-2xl font-bold text-center mb-6">成为 1602 会员</h2>
             <form id="register-form">
                 <div class="mb-4">
-                    <label for="name" class="block mb-2 text-sm font-medium" data-lang-en="Name (Required)">Name (Required)</label>
-                    <input type="text" id="name" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" required>
+                    <input type="text" id="name" placeholder="名字（必填）" required 
+                           class="w-full p-3 border rounded-lg">
                 </div>
                 <div class="mb-4">
-                    <label for="phone" class="block mb-2 text-sm font-medium" data-lang-en="Phone (Required)">Phone (Required)</label>
-                    <div class="flex">
-                        <select id="country-code" class="bg-gray-700 border border-r-0 border-gray-600 rounded-l-lg p-2.5 text-white focus:outline-none">
-                        </select>
-                        <input type="tel" id="phone" class="w-full bg-gray-700 border border-gray-600 rounded-r-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="1123456789" required>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="email" class="block mb-2 text-sm font-medium" data-lang-en="Email (Optional)">Email (Optional)</label>
-                    <input type="email" id="email" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="tel" id="phone" placeholder="电话（必填）" required 
+                           class="w-full p-3 border rounded-lg">
                 </div>
                 <div class="mb-6">
-                    <label for="address" class="block mb-2 text-sm font-medium" data-lang-en="Address (Optional)">Address (Optional)</label>
-                    <input type="text" id="address" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="email" id="email" placeholder="邮箱（选填）" 
+                           class="w-full p-3 border rounded-lg">
                 </div>
-                <button type="submit" id="submit-register" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105" data-lang-en="Submit & Get Spin!">Submit & Get Spin!</button>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg">
+                    提交并获取抽奖机会！
+                </button>
             </form>
         </div>
 
-        <!-- Lucky Wheel Page -->
-        <div id="wheel-page" class="hidden text-center">
-            <h2 class="text-3xl font-bold mb-2" data-lang-en="1602 Lucky Draw">1602 Lucky Draw</h2>
-            <p class="mb-4" data-lang-en="Welcome, "><span id="user-name-display"></span>!</p>
-            <div id="wheel-wrapper" class="p-2 inline-block">
-                <div class="wheel-container">
-                    <div class="pointer"></div>
-                    <canvas id="canvas" width="400" height="400"></canvas>
+        <!-- Wheel Page -->
+        <div id="wheel-page" class="hidden text-center text-white">
+            <h2 class="text-3xl font-bold mb-4">1602 幸运轮盘</h2>
+            <p class="mb-2">欢迎, <span id="user-name">用户</span></p>
+            <p class="mb-6"><span id="chances-left">1</span> 次机会</p>
+            
+            <div class="relative inline-block mb-6">
+                <div class="pointer"></div>
+                <div id="wheel" class="wheel">
+                    <!-- Wheel segments will be generated by JavaScript -->
                 </div>
             </div>
-            <button id="spin-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-lg transition-transform transform hover:scale-105 disabled:bg-gray-500 disabled:cursor-not-allowed">
-                <span data-lang-en="SPIN">SPIN</span> (<span id="chances-left">0</span> <span data-lang-en="chances left">chances left</span>)
-            </button>
-            <div class="mt-4 flex justify-center gap-4 flex-wrap">
-                <button id="my-prizes-btn" class="text-sm text-gray-400 hover:text-white hidden" data-lang-en="My Prizes">My Prizes</button>
-                <button id="tnc-btn" class="text-sm text-gray-400 hover:text-white" data-lang-en="Prize T&C">Prize T&C</button>
-                <button id="beer-sommelier-btn" class="text-sm text-purple-400 hover:text-purple-300 font-bold" data-lang-en="✨ AI Beer Recommendation">✨ AI Beer Recommendation</button>
-                <button id="packages-btn" class="text-sm text-gray-400 hover:text-white" data-lang-en="Our Packages">Our Packages</button>
-                <button id="feedback-btn" class="text-sm text-gray-400 hover:text-white" data-lang-en="Feedback">Feedback</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Result Modal -->
-    <div id="result-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
-        <div class="bg-gray-800 text-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-auto text-center">
-            <h3 id="modal-title" class="text-3xl font-bold mb-4"></h3>
-            <div id="modal-content">
-                <p id="modal-text" class="text-lg mb-2"></p>
-                <div id="online-voucher-instructions" class="hidden text-sm mt-4 p-3 bg-gray-700 rounded-lg">
-                    <p class="font-bold mb-2" data-lang-en="How to Claim Your Online Voucher:">How to Claim Your Online Voucher:</p>
-                    <p data-lang-en="Download our '1602craftbeer' app to redeem your prize!">Download our '1602craftbeer' app to redeem your prize!</p>
-                    <div class="flex justify-center gap-4 mt-2">
-                        <a href="https://apps.apple.com/your-app-link" target="_blank" class="opacity-80 hover:opacity-100"><img src="https://placehold.co/120x40/000000/FFFFFF?text=App+Store" alt="Download on the App Store"></a>
-                        <a href="https://play.google.com/store/apps/details?id=your.app.id" target="_blank" class="opacity-80 hover:opacity-100"><img src="https://placehold.co/120x40/000000/FFFFFF?text=Google+Play" alt="Get it on Google Play"></a>
-                    </div>
-                </div>
-                <button id="gemini-idea-btn" class="hidden w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 my-4">
-                    ✨ <span data-lang-en="AI, give me an idea!">AI, give me an idea!</span>
+            
+            <div>
+                <button id="spin-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-lg text-xl">
+                    开始抽奖
                 </button>
             </div>
-            <div id="gemini-loading" class="hidden">
-                <div class="loader"></div>
-                <p data-lang-en="Our AI is thinking...">Our AI is thinking...</p>
-            </div>
-            <div id="share-section" class="mt-4 pt-4 border-t border-gray-600">
-                <p class="mb-3 text-sm" data-lang-en="Share to get a RM2 cash voucher!">Share to get a RM2 cash voucher!</p>
-                <div class="flex justify-center space-x-4">
-                    <button onclick="share('facebook')" class="bg-blue-800 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg></button>
-                    <button onclick="share('instagram')" class="bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.225-.149-4.771-1.664-4.919-4.919-.058-1.265-.069-1.645-.069-4.849 0-3.204.012-3.584.069-4.849.149-3.225 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.948-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z"/></svg></button>
-                    <button onclick="share('copy_whatsapp')" class="bg-gray-500 text-white p-3 rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity"><svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+        </div>
+
+        <!-- Result Modal -->
+        <div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 max-w-sm w-full mx-4 text-center">
+                <h3 id="modal-title" class="text-2xl font-bold mb-4">恭喜！</h3>
+                <div id="modal-content" class="mb-6">
+                    <p>您抽中了奖品！</p>
                 </div>
-            </div>
-            <button id="modal-close-btn" class="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg" data-lang-en="Close">Close</button>
-        </div>
-    </div>
-
-    <!-- Generic Modal for T&C, Packages, and Announcements -->
-    <div id="generic-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
-        <div class="bg-gray-800 text-white rounded-lg shadow-2xl p-6 max-w-lg w-full mx-auto text-left">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="generic-modal-title" class="text-2xl font-bold"></h3>
-                <button id="generic-modal-close-btn" class="text-2xl leading-none">&times;</button>
-            </div>
-            <div id="generic-modal-content" class="text-gray-300 text-sm space-y-2 max-h-[60vh] overflow-y-auto">
+                <button id="modal-close" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+                    关闭
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- AI Beer Sommelier Modal -->
-    <div id="beer-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
-        <div class="bg-gray-800 text-white rounded-lg shadow-2xl p-6 max-w-lg w-full mx-auto text-left">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="beer-modal-title" class="text-2xl font-bold" data-lang-en="✨ AI Beer Sommelier">✨ AI Beer Sommelier</h3>
-                <button id="beer-modal-close-btn" class="text-2xl leading-none">&times;</button>
-            </div>
-            <div id="beer-modal-content">
-                <p class="mb-4" data-lang-en="What kind of flavor are you in the mood for?">What kind of flavor are you in the mood for?</p>
-                <div class="space-y-3">
-                    <button data-flavor="Pale Ale" class="beer-flavor-btn w-full text-left p-3 bg-gray-700 hover:bg-purple-600 rounded-lg transition-colors" data-lang-en="Pale Ale (Fruity & Light)">Pale Ale (Fruity & Light)</button>
-                    <button data-flavor="Extra Dark" class="beer-flavor-btn w-full text-left p-3 bg-gray-700 hover:bg-purple-600 rounded-lg transition-colors" data-lang-en="Extra Dark (Rich & Malty)">Extra Dark (Rich & Malty)</button>
-                    <button data-flavor="Lager" class="beer-flavor-btn w-full text-left p-3 bg-gray-700 hover:bg-purple-600 rounded-lg transition-colors" data-lang-en="Lager (Classic & Crisp)">Lager (Classic & Crisp)</button>
-                </div>
-            </div>
-             <div id="beer-loading" class="hidden">
-                <div class="loader"></div>
-                <p class="text-center" data-lang-en="Our AI Sommelier is pouring a recommendation...">Our AI Sommelier is pouring a recommendation...</p>
-            </div>
-            <div id="beer-recommendation" class="hidden mt-4 text-purple-300 italic"></div>
-        </div>
-    </div>
-
-    <!-- ADDED: Feedback Modal -->
-    <div id="feedback-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-bg hidden z-50 p-4">
-        <div class="bg-gray-800 text-white rounded-lg shadow-2xl p-6 max-w-lg w-full mx-auto text-left">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-2xl font-bold" data-lang-en="Give us your Feedback">Give us your Feedback</h3>
-                <button id="feedback-modal-close-btn" class="text-2xl leading-none">&times;</button>
-            </div>
-            <div>
-                <textarea id="feedback-textarea" class="w-full h-32 p-3 bg-gray-700 border border-gray-600 rounded-md text-white" data-lang-en-placeholder="Your feedback is valuable to us..."></textarea>
-                <button id="submit-feedback-btn" class="mt-4 w-full bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition" data-lang-en="Submit Feedback">Submit Feedback</button>
-            </div>
-        </div>
-    </div>
-
 
     <script type="module">
+        // Firebase imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, addDoc, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY",
             authDomain: "deductive-smile-408711.firebaseapp.com",
@@ -409,637 +134,52 @@
             appId: "1:209601875553:web:d4a9175622134295c06420",
             measurementId: "G-R222P71DDD"
         };
-        
+
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const langData = {
-            en: {
-                "Welcome to 1602": "Welcome to 1602",
-                "Scan the QR code to participate!": "Scan the QR code to participate!",
-                "This is the official entry point for the 1602 Lucky Draw.": "This is the official entry point for the 1602 Lucky Draw.",
-                "A Surprise Awaits!": "A Surprise Awaits!",
-                "Meeting is fate, a gift is our bond.": "Meeting is fate, a gift is our bond.",
-                "Scan or Click Below to Join!": "Scan or Click Below to Join!",
-                "Enter Now": "Enter Now",
-                "Become a 1602 Member": "Become a 1602 Member",
-                "Fill in your details to get 1 free spin!": "Fill in your details to get 1 free spin!",
-                "Name (Required)": "Name (Required)",
-                "Phone (Required)": "Phone (Required)",
-                "Email (Optional)": "Email (Optional)",
-                "Address (Optional)": "Address (Optional)",
-                "Submit & Get Spin!": "Submit & Get Spin!",
-                "1602 Lucky Draw": "1602 Lucky Draw",
-                "Welcome, ": "Welcome, ",
-                "SPIN": "SPIN",
-                "chances left": "chances left",
-                "Share to get a RM2 cash voucher!": "Share to get a RM2 cash voucher!",
-                "Close": "Close",
-                "AI, give me an idea!": "AI, give me an idea!",
-                "Our AI is thinking...": "Our AI is thinking...",
-                "Prize T&C": "Prize T&C",
-                "Our Packages": "Our Packages",
-                "My Prizes": "My Prizes",
-                "Feedback": "Feedback",
-                "How to Claim Your Online Voucher:": "How to Claim Your Online Voucher:",
-                "Download our '1602craftbeer' app to redeem your prize!": "Download our '1602craftbeer' app to redeem your prize!",
-                "Terms & Conditions": "Terms & Conditions",
-                "1602 Packages": "1602 Packages",
-                "✨ AI Beer Recommendation": "✨ AI Beer Recommendation",
-                "✨ AI Beer Sommelier": "✨ AI Beer Sommelier",
-                "What kind of flavor are you in the mood for?": "What kind of flavor are you in the mood for?",
-                "Pale Ale (Fruity & Light)": "Pale Ale (Fruity & Light)",
-                "Extra Dark (Rich & Malty)": "Extra Dark (Rich & Malty)",
-                "Lager (Classic & Crisp)": "Lager (Classic & Crisp)",
-                "Our AI Sommelier is pouring a recommendation...": "Our AI Sommelier is pouring a recommendation...",
-                "Event Announcement": "Event Announcement",
-                "Your Prizes": "Your Prizes",
-                "Like & Follow us on Facebook for an instant RM2 cash voucher!": "Like & Follow us on Facebook for an instant RM2 cash voucher!",
-                "Search for 'Sarawakian Craft Beer - Kuching Beer Catering Service', show our staff, and claim your voucher now!": "Search for 'Sarawakian Craft Beer - Kuching Beer Catering Service', show our staff, and claim your voucher now!",
-                "Give us your Feedback": "Give us your Feedback",
-                "Your feedback is valuable to us...": "Your feedback is valuable to us...",
-                "Submit Feedback": "Submit Feedback",
-                "Feedback submitted. Thank you!": "Feedback submitted. Thank you!",
-                "Wine Card": "Wine Card",
-                "RM5 Cash voucher": "RM5 Cash voucher",
-                "RM10 Online Cash voucher": "RM10 Online Cash voucher",
-                "RM20 Online Cash voucher": "RM20 Online Cash voucher",
-                "330ml Lager Smooth": "330ml Lager Smooth",
-                "660ml Bottle": "660ml Bottle",
-                "1602 Pen": "1602 Pen",
-                "1602 Cooler Bag": "1602 Cooler Bag",
-                "1602 mug": "1602 mug",
-                "Thank You": "Thank You",
-                "Spin Again!": "Spin Again!",
-                "Beer Card": "Beer Card",
-                "Congratulations!": "Congratulations!",
-                "Oh No...": "Oh No...",
-                "Awesome!": "Awesome!",
-                "You won a": "You won a",
-                "Better luck next time!": "Better luck next time!",
-                "You get another free spin!": "You get another free spin!",
-                "Copied to clipboard!": "Copied to clipboard!",
-                "User already exists. Loading your data...": "User already exists. Loading your data...",
-                "Registration successful!": "Registration successful!",
-                "Please fill in required fields.": "Please fill in required fields.",
-                "Please enter a valid phone number (digits only).": "Please enter a valid phone number (digits only)."
-            },
-            zh: {
-                "Welcome to 1602": "欢迎来到 1602",
-                "Scan the QR code to participate!": "请扫描二维码参与活动！",
-                "This is the official entry point for the 1602 Lucky Draw.": "这是1602幸运轮盘的官方活动入口。",
-                "A Surprise Awaits!": "扫码有惊喜！",
-                "Meeting is fate, a gift is our bond.": "与你相遇是缘分，扫码送礼结情分。",
-                "Scan or Click Below to Join!": "扫描或点击下方按钮参与！",
-                "Enter Now": "快捷通道",
-                "Become a 1602 Member": "成为 1602 会员",
-                "Fill in your details to get 1 free spin!": "填写资料即可获得1次免费抽奖机会！",
-                "Name (Required)": "名字（必填）",
-                "Phone (Required)": "电话（必填）",
-                "Email (Optional)": "邮箱（选填）",
-                "Address (Optional)": "地址（选填）",
-                "Submit & Get Spin!": "提交并获取抽奖机会！",
-                "1602 Lucky Draw": "1602 幸运轮盘",
-                "Welcome, ": "欢迎, ",
-                "SPIN": "开始抽奖",
-                "chances left": "次机会",
-                "Share to get a RM2 cash voucher!": "成功分享可获得RM2现金券！",
-                "Close": "关闭",
-                "AI, give me an idea!": "AI给我一个好主意！",
-                "Our AI is thinking...": "AI正在为您生成创意...",
-                "Prize T&C": "领奖 T&C",
-                "Our Packages": "优惠套餐",
-                "My Prizes": "我的奖品",
-                "Feedback": "客户反馈",
-                "How to Claim Your Online Voucher:": "如何领取您的线上代金券:",
-                "Download our '1602craftbeer' app to redeem your prize!": "请下载我们的 “1602craftbeer” App 领取您的奖励！",
-                "Terms & Conditions": "条款与规定",
-                "1602 Packages": "1602 优惠套餐",
-                "✨ AI Beer Recommendation": "✨ AI 啤酒推荐",
-                "✨ AI Beer Sommelier": "✨ AI 啤酒品鉴顾问",
-                "What kind of flavor are you in the mood for?": "您今天想喝点什么口味？",
-                "Pale Ale (Fruity & Light)": "清爽果香 (Pale Ale)",
-                "Extra Dark (Rich & Malty)": "浓郁麦香 (Extra Dark)",
-                "Lager (Classic & Crisp)": "经典原味 (Lager)",
-                "Event Announcement": "活动公告",
-                "Your Prizes": "您的奖品",
-                "Like & Follow us on Facebook for an instant RM2 cash voucher!": "点赞并关注我们的FB，即可立即获得RM2现金券！",
-                "Search for 'Sarawakian Craft Beer - Kuching Beer Catering Service', show our staff, and claim your voucher now!": "请搜索‘Sarawakian Craft Beer - Kuching Beer Catering Service’，向工作人员展示，即可马上使用您的现金券！",
-                "Give us your Feedback": "给我们一些反馈",
-                "Your feedback is valuable to us...": "您的反馈对我们非常宝贵...",
-                "Submit Feedback": "提交反馈",
-                "Feedback submitted. Thank you!": "反馈已提交，谢谢您！",
-                "Wine Card": "酒卡",
-                "RM5 Cash voucher": "现金券RM5",
-                "RM10 Online Cash voucher": "线上现金券RM10",
-                "RM20 Online Cash voucher": "线上现金券RM20",
-                "330ml Lager Smooth": "330ml新品Lager Smooth 1罐",
-                "660ml Bottle": "660ml瓶装 1瓶",
-                "1602 Pen": "1602纪念笔",
-                "1602 Cooler Bag": "1602保冷袋",
-                "1602 mug": "1602纪念陶瓷杯",
-                "Thank You": "谢谢参与",
-                "Spin Again!": "再来一次！",
-                "Beer Card": "酒卡",
-                "Congratulations!": "恭喜！",
-                "Oh No...": "很遗憾...",
-                "Awesome!": "太棒了！",
-                "You won a": "您抽中了",
-                "Better luck next time!": "祝您下次好运！",
-                "You get another free spin!": "您获得了一次额外抽奖机会！",
-                "Copied to clipboard!": "已复制到剪贴板！",
-                "User already exists. Loading your data...": "用户已存在，正在加载您的数据...",
-                "Registration successful!": "注册成功！",
-                "Please fill in required fields.": "请填写必填项。",
-                "Please enter a valid phone number (digits only).": "请输入有效的电话号码（仅限数字）。"
-            }
-        };
-
         // Global variables
-        let currentLang = 'en';
-        let knowledgeBaseContent = '';
         let currentUser = null;
-        let userDataListener = null;
 
-        // Real-time user data listener
-        function setupUserDataListener(userId) {
-            // Remove existing listener if any
-            if (userDataListener) {
-                userDataListener();
-                userDataListener = null;
-            }
+        // Prize data
+        const prizes = [
+            { text: 'RM5 现金券', color: '#FF6B6B', weight: 20 },
+            { text: 'RM10 线上现金券', color: '#4ECDC4', weight: 15 },
+            { text: '330ml啤酒', color: '#45B7D1', weight: 25 },
+            { text: '1602纪念品', color: '#96CEB4', weight: 20 },
+            { text: '谢谢参与', color: '#FFEAA7', weight: 15 },
+            { text: '再来一次！', color: '#DDA0DD', weight: 5 }
+        ];
 
-            // Set up new listener for current user
-            const userRef = doc(db, 'users', userId);
-            userDataListener = onSnapshot(userRef, (doc) => {
-                if (doc.exists()) {
-                    const userData = doc.data();
-                    currentUser = { id: doc.id, ...userData };
-                    
-                    // Update UI with real-time data
-                    updateUserInterface(userData);
-                    
-                    console.log('User data updated in real-time:', userData);
-                } else {
-                    console.log('User document does not exist');
-                }
-            }, (error) => {
-                console.error('Error listening to user data:', error);
-            });
-        }
-
-        // Update user interface with real-time data
-        function updateUserInterface(userData) {
-            const userNameDisplay = document.getElementById('user-name-display');
-            const chancesLeft = document.getElementById('chances-left');
-            
-            if (userNameDisplay) {
-                userNameDisplay.textContent = userData.name || 'User';
-            }
-            
-            if (chancesLeft) {
-                chancesLeft.textContent = userData.chances || 0;
-            }
-
-            // Update spin button state based on chances
-            const spinBtn = document.getElementById('spin-btn');
-            if (spinBtn) {
-                spinBtn.disabled = (userData.chances || 0) <= 0;
-                if (userData.chances <= 0) {
-                    spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-            }
-        }
-
-        // Real-time settings listener
-        function setupSettingsListener() {
-            const settingsRef = doc(db, 'settings', 'app');
-            onSnapshot(settingsRef, (doc) => {
-                if (doc.exists()) {
-                    const settings = doc.data();
-                    
-                    // Update announcement if changed
-                    if (settings.announcement) {
-                        showAnnouncement(settings.announcement);
-                    }
-                    
-                    // Update knowledge base
-                    if (settings.knowledge) {
-                        knowledgeBaseContent = settings.knowledge;
-                    }
-                    
-                    console.log('Settings updated in real-time:', settings);
-                }
-            }, (error) => {
-                console.error('Error listening to settings:', error);
-            });
-        }
-
-        // Global error handler
-        window.addEventListener('error', function(e) {
-            console.error('Global error:', e.error);
-            console.error('Error message:', e.message);
-            console.error('Error filename:', e.filename);
-            console.error('Error line:', e.lineno);
-        });
-
-        // Unhandled promise rejection handler
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('Unhandled promise rejection:', e.reason);
-            e.preventDefault();
-        });
-
-        // Enhanced user data update function
-        async function updateUserData(userId, updates) {
-            try {
-                const userRef = doc(db, 'users', userId);
-                await updateDoc(userRef, {
-                    ...updates,
-                    lastUpdated: serverTimestamp()
-                });
-                console.log('User data updated successfully:', updates);
-            } catch (error) {
-                console.error('Error updating user data:', error);
-                throw error;
-            }
-        }
-
-        // Language switching function
-        function switchLanguage(lang) {
-            currentLang = lang;
-            const elements = document.querySelectorAll('[data-lang-en]');
-            elements.forEach(element => {
-                const key = element.getAttribute('data-lang-en');
-                if (langData[lang] && langData[lang][key]) {
-                    element.textContent = langData[lang][key];
-                }
-            });
-        }
-
-        // Fetch settings from Firestore
-        async function fetchSettings() {
-            try {
-                console.log('📋 Fetching settings from Firestore...');
-                const settingsDoc = await getDoc(doc(db, 'settings', 'app'));
-                if (settingsDoc.exists()) {
-                    const settings = settingsDoc.data();
-                    console.log('✅ Settings loaded:', settings);
-                    if (settings.announcement) {
-                        showAnnouncement(settings.announcement);
-                    }
-                    if (settings.knowledge) {
-                        knowledgeBaseContent = settings.knowledge;
-                    }
-                } else {
-                    console.log('⚠️ Settings document does not exist, creating default settings...');
-                    await initializeDefaultSettings();
-                }
-            } catch (error) {
-                console.error("❌ Error fetching settings:", error);
-                // Continue without settings if there's an error
-            }
-        }
-
-        // Initialize default settings if they don't exist
-        async function initializeDefaultSettings() {
-            try {
-                const defaultSettings = {
-                    announcement: '',
-                    knowledge: 'Welcome to 1602 Lucky Draw! Spin the wheel to win amazing prizes.',
-                    lastUpdated: serverTimestamp()
-                };
-                
-                await setDoc(doc(db, 'settings', 'app'), defaultSettings);
-                console.log('✅ Default settings created successfully');
-            } catch (error) {
-                console.error('❌ Error creating default settings:', error);
-            }
-        }
-
-        // Test Firestore connection
-        async function testFirestoreConnection() {
-            try {
-                console.log('🧪 Testing Firestore read/write operations...');
-                
-                // Test write operation
-                const testDoc = doc(db, 'test', 'connection');
-                await setDoc(testDoc, {
-                    timestamp: serverTimestamp(),
-                    test: 'connection_test'
-                });
-                console.log('✅ Firestore write test successful');
-                
-                // Test read operation
-                const testRead = await getDoc(testDoc);
-                if (testRead.exists()) {
-                    console.log('✅ Firestore read test successful:', testRead.data());
-                } else {
-                    console.log('⚠️ Firestore read test: document not found');
-                }
-                
-                console.log('✅ Firestore connection test completed successfully');
-            } catch (error) {
-                console.error('❌ Firestore connection test failed:', error);
-                throw error;
-            }
-        }
-
-        // Show announcement modal
-        function showAnnouncement(announcement) {
-            if (announcement.trim()) {
-                const modal = document.getElementById('generic-modal');
-                const title = document.getElementById('generic-modal-title');
-                const content = document.getElementById('generic-modal-content');
-                
-                title.textContent = langData[currentLang]["Event Announcement"] || "Event Announcement";
-                content.innerHTML = `<p class="text-gray-700">${announcement}</p>`;
-                modal.classList.remove('hidden');
-            }
-        }
-
-        // Create background particles
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            if (!particlesContainer) return;
-            
-            for (let i = 0; i < 50; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                particlesContainer.appendChild(particle);
-            }
-        }
-
-        // Populate country codes dropdown
-        function populateCountryCodes() {
-            const countryCodeSelect = document.getElementById('country-code');
-            if (!countryCodeSelect) return;
-            
-            const countryCodes = [
-                { code: '+60', country: 'Malaysia' },
-                { code: '+65', country: 'Singapore' },
-                { code: '+1', country: 'US/Canada' },
-                { code: '+44', country: 'UK' },
-                { code: '+86', country: 'China' },
-                { code: '+81', country: 'Japan' },
-                { code: '+82', country: 'South Korea' }
-            ];
-            
-            countryCodes.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.code;
-                option.textContent = `${item.code} ${item.country}`;
-                countryCodeSelect.appendChild(option);
-            });
-        }
-
-        // Draw the wheel
+        // Draw wheel
         function drawWheel() {
-            const canvas = document.getElementById('canvas');
-            if (!canvas) return;
-            
-            const ctx = canvas.getContext('2d');
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = 180;
-            
-            const prizes = [
-                { text: 'Beer Card', color: '#FF6B6B', textColor: '#FFFFFF', weight: 0 },
-                { text: 'RM5 Cash voucher', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
-                { text: 'RM10 Online Cash voucher', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
-                { text: 'RM20 Online Cash voucher', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
-                { text: '330ml Lager Smooth', color: '#FFEAA7', textColor: '#2D3436', weight: 9 },
-                { text: '660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 6 },
-                { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 12 },
-                { text: '1602 Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 12 },
-                { text: '1602 mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
-                { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 14 },
-                { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 16 }
-            ];
-            
-            const anglePerSlice = (2 * Math.PI) / prizes.length;
+            const wheel = document.getElementById('wheel');
+            const segmentAngle = 360 / prizes.length;
             
             prizes.forEach((prize, index) => {
-                const startAngle = index * anglePerSlice;
-                const endAngle = startAngle + anglePerSlice;
+                const segment = document.createElement('div');
+                segment.className = 'wheel-segment';
+                segment.style.backgroundColor = prize.color;
+                segment.style.transform = `rotate(${index * segmentAngle}deg)`;
+                segment.style.clipPath = `polygon(0 0, 100% 0, 50% 100%)`;
                 
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                ctx.closePath();
-                ctx.fillStyle = prize.color;
-                ctx.fill();
-                ctx.stroke();
+                const text = document.createElement('div');
+                text.className = 'wheel-text';
+                text.textContent = prize.text;
+                text.style.transform = `rotate(${segmentAngle / 2}deg)`;
+                segment.appendChild(text);
                 
-                // Draw text
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(startAngle + anglePerSlice / 2);
-                ctx.textAlign = 'center';
-                ctx.fillStyle = prize.textColor;
-                ctx.font = 'bold 10px Arial'; // 减小字体大小
-                
-                // Split text into multiple lines for better display
-                const text = prize.text;
-                const words = text.split(' ');
-                const maxWidth = radius * 0.4; // 限制文字宽度
-                const textRadius = radius * 0.65; // 调整文字位置更靠近中心
-                
-                if (words.length > 2 || ctx.measureText(text).width > maxWidth) {
-                    // 长文字分行显示
-                    if (words.length >= 3) {
-                        ctx.fillText(words.slice(0, 2).join(' '), textRadius, -6);
-                        ctx.fillText(words.slice(2).join(' '), textRadius, 6);
-                    } else if (words.length === 2) {
-                        ctx.fillText(words[0], textRadius, -6);
-                        ctx.fillText(words[1], textRadius, 6);
-                    } else {
-                        // 单个长词，尝试缩短显示
-                        const shortText = text.length > 12 ? text.substring(0, 10) + '...' : text;
-                        ctx.fillText(shortText, textRadius, 0);
-                    }
-                } else {
-                    // 短文字单行显示
-                    ctx.fillText(text, textRadius, 0);
-                }
-                ctx.restore();
+                wheel.appendChild(segment);
             });
         }
 
-        // Handle registration form submission
-        async function handleRegistration(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value.trim();
-            const countryCode = document.getElementById('country-code').value;
-            const phone = document.getElementById('phone').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const address = document.getElementById('address').value.trim();
-            
-            if (!name || !phone) {
-                alert(langData[currentLang]["Please fill in required fields."] || "Please fill in required fields.");
-                return;
-            }
-            
-            if (!/^\d+$/.test(phone)) {
-                alert(langData[currentLang]["Please enter a valid phone number (digits only)."] || "Please enter a valid phone number (digits only).");
-                return;
-            }
-            
-            const fullPhone = countryCode + phone;
-            
-            try {
-                const userRef = doc(db, 'users', fullPhone);
-                const userDoc = await getDoc(userRef);
-                
-                let userData;
-                if (userDoc.exists()) {
-                    userData = userDoc.data();
-                    
-                    // Update existing user with enhanced function
-                    await updateUserData(fullPhone, {
-                        name: name,
-                        email: email || userData.email || '',
-                        address: address || userData.address || '',
-                        lastLogin: serverTimestamp()
-                    });
-                    
-                    alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
-                } else {
-                    userData = {
-                        name: name,
-                        phone: fullPhone,
-                        email: email || '',
-                        address: address || '',
-                        chances: 1,
-                        prizes: [],
-                        createdAt: serverTimestamp(),
-                        lastLogin: serverTimestamp()
-                    };
-                    await setDoc(userRef, userData);
-                    alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
-                }
-                
-                // Set up real-time listener for this user
-                setupUserDataListener(fullPhone);
-                
-                // Store current user ID for future operations
-                window.currentUserId = fullPhone;
-                
-                // Switch to wheel page first
-                document.getElementById('register-page').classList.add('hidden');
-                document.getElementById('wheel-page').classList.remove('hidden');
-                
-                // The UI will be updated automatically by the real-time listener
-                
-            } catch (error) {
-                console.error("Registration error:", error);
-                alert("Registration failed. Please try again.");
-            }
-        }
-
-        // Spin the wheel
-        async function spin() {
-            const spinBtn = document.getElementById('spin-btn');
-            const chancesLeft = parseInt(document.getElementById('chances-left').textContent);
-            
-            if (chancesLeft <= 0) {
-                alert("No chances left!");
-                return;
-            }
-            
-            if (!window.currentUserId) {
-                alert("User not found. Please register again.");
-                return;
-            }
-            
-            spinBtn.disabled = true;
-            
-            // Simulate spinning animation
-            const wheel = document.getElementById('canvas');
-            const wrapper = document.getElementById('wheel-wrapper');
-            wrapper.classList.add('spinning-neon');
-            
-            const randomRotation = Math.random() * 360 + 1440; // At least 4 full rotations
-            wheel.style.transform = `rotate(${randomRotation}deg)`;
-            
-            setTimeout(async () => {
-                wrapper.classList.remove('spinning-neon');
-                
-                // Determine prize based on weighted probability
-                const wonPrize = selectPrizeByWeight();
-                
-                try {
-                    // Update user data in real-time
-                    const updates = {
-                        lastSpin: serverTimestamp()
-                    };
-                    
-                    if (wonPrize === 'Spin Again!') {
-                        // Don't reduce chances for "Spin Again!"
-                        updates.prizes = arrayUnion({
-                            prize: wonPrize,
-                            timestamp: serverTimestamp()
-                        });
-                    } else {
-                        // Reduce chances and add prize
-                        updates.chances = Math.max(0, chancesLeft - 1);
-                        updates.prizes = arrayUnion({
-                            prize: wonPrize,
-                            timestamp: serverTimestamp()
-                        });
-                    }
-                    
-                    await updateUserData(window.currentUserId, updates);
-                    
-                    showPrizeModal(wonPrize);
-                    
-                } catch (error) {
-                    console.error('Error updating user data after spin:', error);
-                    alert('Error saving spin result. Please try again.');
-                }
-                
-                spinBtn.disabled = false;
-                
-            }, 3000);
-        }
-
-        // Select prize based on weight
-        function selectPrizeByWeight() {
-            const canvas = document.getElementById('canvas');
-            if (!canvas) return 'Thank You';
-            
-            const ctx = canvas.getContext('2d');
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = 180;
-            
-            const prizes = [
-                { text: 'Beer Card', color: '#FF6B6B', textColor: '#FFFFFF', weight: 0 },
-                { text: 'RM5 Cash voucher', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
-                { text: 'RM10 Online Cash voucher', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
-                { text: 'RM20 Online Cash voucher', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
-                { text: '330ml Lager Smooth', color: '#FFEAA7', textColor: '#2D3436', weight: 9 },
-                { text: '660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 6 },
-                { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 12 },
-                { text: '1602 Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 12 },
-                { text: '1602 mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
-                { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 14 },
-                { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 16 }
-            ];
-            
-            // Calculate total weight
+        // Select prize by weight
+        function selectPrize() {
             const totalWeight = prizes.reduce((sum, prize) => sum + prize.weight, 0);
-            
-            // Generate random number
             const random = Math.random() * totalWeight;
             
-            // Find the selected prize
             let currentWeight = 0;
             for (const prize of prizes) {
                 currentWeight += prize.weight;
@@ -1047,224 +187,165 @@
                     return prize.text;
                 }
             }
-            
-            // Fallback
-            return 'Thank You';
+            return prizes[0].text;
         }
 
-        // Show prize modal
-        function showPrizeModal(prize) {
+        // Show result modal
+        function showResult(prize) {
             const modal = document.getElementById('result-modal');
             const title = document.getElementById('modal-title');
             const content = document.getElementById('modal-content');
             
-            if (prize === 'Thank You') {
-                title.textContent = langData[currentLang]["Oh No..."] || "Oh No...";
-                content.innerHTML = `<p>${langData[currentLang]["Better luck next time!"] || "Better luck next time!"}</p>`;
-            } else if (prize === 'Spin Again!') {
-                title.textContent = langData[currentLang]["Awesome!"] || "Awesome!";
-                content.innerHTML = `<p>${langData[currentLang]["You get another free spin!"] || "You get another free spin!"}</p>`;
+            if (prize === '谢谢参与') {
+                title.textContent = '很遗憾...';
+                content.innerHTML = '<p>祝您下次好运！</p>';
+            } else if (prize === '再来一次！') {
+                title.textContent = '太棒了！';
+                content.innerHTML = '<p>您获得了一次额外抽奖机会！</p>';
             } else {
-                title.textContent = langData[currentLang]["Congratulations!"] || "Congratulations!";
-                content.innerHTML = `<p>${langData[currentLang]["You won a"] || "You won a"} ${langData[currentLang][prize] || prize}!</p>`;
+                title.textContent = '恭喜！';
+                content.innerHTML = `<p>您抽中了 ${prize}！</p>`;
             }
             
             modal.classList.remove('hidden');
         }
 
-        // Show generic modal
-        function showGenericModal(type) {
-            const modal = document.getElementById('generic-modal');
-            const title = document.getElementById('generic-modal-title');
-            const content = document.getElementById('generic-modal-content');
-            
-            switch(type) {
-                case 'tnc':
-                    title.textContent = langData[currentLang]["Terms & Conditions"] || "Terms & Conditions";
-                    content.innerHTML = `
-                        <div class="space-y-4 text-gray-700">
-                            <h4 class="font-semibold">${langData[currentLang]["How to Claim Your Online Voucher:"] || "How to Claim Your Online Voucher:"}</h4>
-                            <p>${langData[currentLang]["Download our '1602craftbeer' app to redeem your prize!"] || "Download our '1602craftbeer' app to redeem your prize!"}</p>
-                        </div>
-                    `;
-                    break;
-                case 'packages':
-                    title.textContent = langData[currentLang]["1602 Packages"] || "1602 Packages";
-                    content.innerHTML = `<p class="text-gray-700">Package information will be displayed here.</p>`;
-                    break;
-                case 'my-prizes':
-                    title.textContent = langData[currentLang]["Your Prizes"] || "Your Prizes";
-                    content.innerHTML = `<p class="text-gray-700">Your prize history will be displayed here.</p>`;
-                    break;
-            }
-            
-            modal.classList.remove('hidden');
-        }
-
-        // Handle beer recommendation
-        async function handleBeerRecommendation(flavor) {
-            const loading = document.getElementById('beer-loading');
-            const recommendation = document.getElementById('beer-recommendation');
-            
-            loading.classList.remove('hidden');
-            recommendation.classList.add('hidden');
-            
-            // Simulate AI recommendation
-            setTimeout(() => {
-                loading.classList.add('hidden');
-                recommendation.classList.remove('hidden');
-                
-                const recommendations = {
-                    'Pale Ale': 'Based on your preference for fruity and light flavors, I recommend our 1602 Pale Ale! It features citrusy hop notes with a refreshing finish.',
-                    'Extra Dark': 'For rich and malty flavors, try our 1602 Extra Dark! It offers deep chocolate and coffee notes with a smooth, full-bodied taste.',
-                    'Lager': 'Our classic 1602 Lager is perfect for you! Clean, crisp, and refreshing with a balanced malt character.'
-                };
-                
-                recommendation.textContent = recommendations[flavor] || 'Try our signature 1602 beer selection!';
-            }, 2000);
-        }
-
-        // Submit feedback
-        async function submitFeedback() {
-            const textarea = document.getElementById('feedback-textarea');
-            const feedback = textarea.value.trim();
-            
-            if (!feedback) return;
-            
-            try {
-                await addDoc(collection(db, 'feedback'), {
-                    feedback: feedback,
-                    timestamp: new Date()
-                });
-                
-                alert(langData[currentLang]["Feedback submitted. Thank you!"] || "Feedback submitted. Thank you!");
-                textarea.value = '';
-                document.getElementById('feedback-modal').classList.add('hidden');
-            } catch (error) {
-                console.error("Error submitting feedback:", error);
-                alert("Failed to submit feedback. Please try again.");
-            }
-        }
-        
-        // All other variables and functions are defined below but omitted for brevity.
-        // The full, correct code is in the script.
-        
-        async function initApp() {
-            console.log('🚀 Starting app initialization...');
-            
-            // FIXED: Moved all element lookups inside initApp to run after DOM is loaded
-            const landingPageContainer = document.getElementById('landing-page-container');
-            const registerPage = document.getElementById('register-page');
-            const wheelPage = document.getElementById('wheel-page');
-            const registerForm = document.getElementById('register-form');
+        // Spin function
+        async function spin() {
             const spinBtn = document.getElementById('spin-btn');
-            const chancesLeftSpan = document.getElementById('chances-left');
-            const userNameDisplay = document.getElementById('user-name-display');
-            const resultModal = document.getElementById('result-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalContent = document.getElementById('modal-content');
-            const modalText = document.getElementById('modal-text');
-            const onlineVoucherInstructions = document.getElementById('online-voucher-instructions');
-            const modalCloseBtn = document.getElementById('modal-close-btn');
-            const geminiIdeaBtn = document.getElementById('gemini-idea-btn');
-            const geminiLoading = document.getElementById('gemini-loading');
-            const genericModal = document.getElementById('generic-modal');
-            const genericModalTitle = document.getElementById('generic-modal-title');
-            const genericModalContent = document.getElementById('generic-modal-content');
-            const genericModalCloseBtn = document.getElementById('generic-modal-close-btn');
-            const beerModal = document.getElementById('beer-modal');
-            const beerModalCloseBtn = document.getElementById('beer-modal-close-btn');
-            const beerModalContent = document.getElementById('beer-modal-content');
-            const beerLoading = document.getElementById('beer-loading');
-            const beerRecommendation = document.getElementById('beer-recommendation');
-            const feedbackModal = document.getElementById('feedback-modal');
-            const feedbackModalCloseBtn = document.getElementById('feedback-modal-close-btn');
-            const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
-            const feedbackTextarea = document.getElementById('feedback-textarea');
-
-            try {
-                console.log('🔐 Attempting Firebase authentication...');
-                await signInAnonymously(auth);
-                console.log("✅ Signed in anonymously to access Firestore.");
-
-                // Test Firestore connection
-                console.log('🔗 Testing Firestore connection...');
-                await testFirestoreConnection();
-
-                console.log('🌐 Setting language to Chinese...');
-                switchLanguage('zh');
-
-                console.log('⚙️ Fetching app settings...');
-                await fetchSettings();
+            const wheel = document.getElementById('wheel');
+            const chancesLeft = parseInt(document.getElementById('chances-left').textContent);
+            
+            if (chancesLeft <= 0) {
+                alert('没有抽奖机会了！');
+                return;
+            }
+            
+            spinBtn.disabled = true;
+            
+            // Spin animation
+            const randomRotation = Math.random() * 360 + 1440;
+            wheel.style.transition = 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)';
+            wheel.style.transform = `rotate(${randomRotation}deg)`;
+            
+            setTimeout(async () => {
+                const prize = selectPrize();
                 
-                console.log('👂 Setting up real-time settings listener...');
-                // Set up real-time settings listener
-                setupSettingsListener();
-
-                console.log('🔍 Checking URL parameters...');
-                const urlParams = new URLSearchParams(window.location.search);
-                const source = urlParams.get('source');
-
-                if (source === 'qrcode') {
-                    console.log('📱 QR code source detected, showing registration page');
-                    landingPageContainer.classList.add('hidden');
-                    registerPage.classList.remove('hidden');
-                } else {
-                    console.log('🏠 Default source, showing landing page');
-                    landingPageContainer.classList.remove('hidden');
-                    registerPage.classList.add('hidden');
+                try {
+                    // Update user data
+                    if (currentUser) {
+                        const updates = {
+                            lastSpin: serverTimestamp(),
+                            prizes: arrayUnion({
+                                prize: prize,
+                                timestamp: serverTimestamp()
+                            })
+                        };
+                        
+                        if (prize !== '再来一次！') {
+                            updates.chances = Math.max(0, chancesLeft - 1);
+                            document.getElementById('chances-left').textContent = updates.chances;
+                        }
+                        
+                        await updateDoc(doc(db, 'users', currentUser.id), updates);
+                    }
+                    
+                    showResult(prize);
+                } catch (error) {
+                    console.error('Error updating user data:', error);
+                    showResult(prize);
                 }
-               
-                console.log('✨ Creating visual effects...');
-                createParticles();
-                populateCountryCodes();
+                
+                spinBtn.disabled = false;
+            }, 3000);
+        }
+
+        // Registration handler
+        async function handleRegistration(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!name || !phone) {
+                alert('请填写必填项');
+                return;
+            }
+            
+            try {
+                const userRef = doc(db, 'users', phone);
+                const userDoc = await getDoc(userRef);
+                
+                if (userDoc.exists()) {
+                    currentUser = { id: phone, ...userDoc.data() };
+                    alert('用户已存在，正在加载您的数据...');
+                } else {
+                    const userData = {
+                        name: name,
+                        phone: phone,
+                        email: email,
+                        chances: 1,
+                        prizes: [],
+                        createdAt: serverTimestamp()
+                    };
+                    
+                    await setDoc(userRef, userData);
+                    currentUser = { id: phone, ...userData };
+                    alert('注册成功！');
+                }
+                
+                // Update UI
+                document.getElementById('user-name').textContent = currentUser.name;
+                document.getElementById('chances-left').textContent = currentUser.chances || 1;
+                
+                // Switch to wheel page
+                document.getElementById('register-page').classList.add('hidden');
+                document.getElementById('wheel-page').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('注册失败，请重试');
+            }
+        }
+
+        // Initialize app
+        async function initApp() {
+            try {
+                console.log('Initializing Firebase...');
+                await signInAnonymously(auth);
+                console.log('Firebase initialized successfully');
+                
+                // Draw wheel
                 drawWheel();
                 
-                console.log('🎯 Setting up event listeners...');
-                registerForm.addEventListener('submit', handleRegistration);
-                spinBtn.addEventListener('click', spin);
-                modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
-                document.getElementById('tnc-btn').addEventListener('click', () => showGenericModal('tnc'));
-                document.getElementById('packages-btn').addEventListener('click', () => showGenericModal('packages'));
-                genericModalCloseBtn.addEventListener('click', () => genericModal.classList.add('hidden'));
-                document.getElementById('fast-track-btn').addEventListener('click', () => {
-                    landingPageContainer.classList.add('hidden');
-                    registerPage.classList.remove('hidden');
+                // Event listeners
+                document.getElementById('enter-btn').addEventListener('click', () => {
+                    document.getElementById('landing-page').classList.add('hidden');
+                    document.getElementById('register-page').classList.remove('hidden');
                 });
-                document.getElementById('beer-sommelier-btn').addEventListener('click', () => {
-                    beerRecommendation.classList.add('hidden');
-                    beerModal.classList.remove('hidden')
+                
+                document.getElementById('register-form').addEventListener('submit', handleRegistration);
+                document.getElementById('spin-btn').addEventListener('click', spin);
+                document.getElementById('modal-close').addEventListener('click', () => {
+                    document.getElementById('result-modal').classList.add('hidden');
                 });
-                beerModalCloseBtn.addEventListener('click', () => beerModal.classList.add('hidden'));
-                document.querySelectorAll('.beer-flavor-btn').forEach(btn => {
-                    btn.addEventListener('click', () => handleBeerRecommendation(btn.dataset.flavor));
-                });
-                document.getElementById('my-prizes-btn').addEventListener('click', () => showGenericModal('my-prizes'));
-                document.getElementById('feedback-btn').addEventListener('click', () => feedbackModal.classList.remove('hidden'));
-                feedbackModalCloseBtn.addEventListener('click', () => feedbackModal.classList.add('hidden'));
-                submitFeedbackBtn.addEventListener('click', submitFeedback);
-
-                // Clean up listeners when page unloads
-                window.addEventListener('beforeunload', () => {
-                    if (userDataListener) {
-                        userDataListener();
-                    }
-                });
-
-                console.log('🎉 App initialization completed successfully!');
-
+                
+                console.log('App initialized successfully');
+                
             } catch (error) {
-                console.error("❌ Firebase Initialization Error:", error);
-                console.error("Error details:", {
-                    name: error.name,
-                    message: error.message,
-                    code: error.code,
-                    stack: error.stack
-                });
-                document.getElementById('app').innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p><p class="text-sm mt-2">Error: ${error.message}</p></div>`;
+                console.error('Initialization error:', error);
+                document.getElementById('app').innerHTML = `
+                    <div class="text-center text-white">
+                        <h2 class="text-2xl font-bold mb-4">连接错误</h2>
+                        <p>无法连接到服务器，请稍后重试</p>
+                        <p class="text-sm mt-2">错误: ${error.message}</p>
+                    </div>
+                `;
             }
         }
 
+        // Start app
         initApp();
     </script>
 </body>
