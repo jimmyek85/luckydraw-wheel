@@ -554,8 +554,31 @@
                 ctx.rotate(startAngle + anglePerSlice / 2);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = prize.textColor;
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText(prize.text, radius * 0.7, 5);
+                ctx.font = 'bold 10px Arial'; // 减小字体大小
+                
+                // Split text into multiple lines for better display
+                const text = prize.text;
+                const words = text.split(' ');
+                const maxWidth = radius * 0.4; // 限制文字宽度
+                const textRadius = radius * 0.65; // 调整文字位置更靠近中心
+                
+                if (words.length > 2 || ctx.measureText(text).width > maxWidth) {
+                    // 长文字分行显示
+                    if (words.length >= 3) {
+                        ctx.fillText(words.slice(0, 2).join(' '), textRadius, -6);
+                        ctx.fillText(words.slice(2).join(' '), textRadius, 6);
+                    } else if (words.length === 2) {
+                        ctx.fillText(words[0], textRadius, -6);
+                        ctx.fillText(words[1], textRadius, 6);
+                    } else {
+                        // 单个长词，尝试缩短显示
+                        const shortText = text.length > 12 ? text.substring(0, 10) + '...' : text;
+                        ctx.fillText(shortText, textRadius, 0);
+                    }
+                } else {
+                    // 短文字单行显示
+                    ctx.fillText(text, textRadius, 0);
+                }
                 ctx.restore();
             });
         }
