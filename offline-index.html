@@ -40,7 +40,7 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 9px;
             text-align: center;
             color: white;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
@@ -49,10 +49,16 @@
         
         .wheel-segment span {
             transform: rotate(-22.5deg);
-            white-space: nowrap;
-            max-width: 80px;
-            line-height: 1.2;
-            padding: 2px;
+            white-space: normal;
+            max-width: 60px;
+            line-height: 1.1;
+            padding: 1px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            display: block;
+            margin-left: 15px;
+            margin-top: -5px;
         }
         
         .wheel-pointer {
@@ -333,16 +339,27 @@
                 "Congratulations! Come to our booth to claim your prize!": "Congratulations! Come to our booth to claim your prize!",
                 "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!": "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!",
                 "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!": "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!",
-                "Cash Voucher RM5": "Cash Voucher RM5",
-                "Online Voucher RM10": "Online Voucher RM10",
-                "Online Voucher RM20": "Online Voucher RM20",
-                "New 330ml Can": "New 330ml Can",
-                "Free 660ml Bottle": "Free 660ml Bottle",
+                "Cash Voucher RM5": "RM5 Cash",
+                "Online Voucher RM10": "RM10 Cash",
+                "Online Voucher RM20": "RM20 Cash",
+                "New 330ml Can": "330ml Can",
+                "Free 660ml Bottle": "660ml Bottle",
                 "1602 Pen": "1602 Pen",
-                "Cooler Bag": "Cooler Bag",
+                "Cooler Bag": "Cool Bag",
                 "1602 Mug": "1602 Mug",
                 "Beer Card": "Beer Card",
-                "Wine Card": "Wine Card"
+                "Wine Card": "Wine Card",
+                "RM5券": "RM5 Cash",
+                "谢谢参与": "Thank You",
+                "RM10券": "RM10 Cash",
+                "再来一次": "Spin Again",
+                "RM20券": "RM20 Cash",
+                "330ml罐": "330ml Can",
+                "660ml瓶": "660ml Bottle",
+                "1602笔": "1602 Pen",
+                "保冷袋": "Cool Bag",
+                "1602杯": "1602 Mug",
+                "酒卡": "Wine Card"
             },
             zh: {
                 "Welcome to 1602": "欢迎来到 1602",
@@ -393,18 +410,18 @@
 
         // 奖品配置
         const prizes = [
-            { name: "Cash Voucher RM5", color: "#FF6B6B", weight: 15 },
-            { name: "Thank You", color: "#4ECDC4", weight: 25 },
-            { name: "Online Voucher RM10", color: "#45B7D1", weight: 12 },
-            { name: "Spin Again!", color: "#96CEB4", weight: 20 },
-            { name: "Online Voucher RM20", color: "#FFEAA7", weight: 8 },
-            { name: "New 330ml Can", color: "#DDA0DD", weight: 10 },
-            { name: "Free 660ml Bottle", color: "#98D8C8", weight: 5 },
-            { name: "1602 Pen", color: "#F7DC6F", weight: 15 },
-            { name: "Cooler Bag", color: "#BB8FCE", weight: 8 },
-            { name: "1602 Mug", color: "#85C1E9", weight: 12 },
-            { name: "Beer Card", color: "#F8C471", weight: 7 },
-            { name: "Wine Card", color: "#82E0AA", weight: 5 }
+            { name: "RM5券", color: "#FF6B6B", weight: 15 },
+            { name: "谢谢参与", color: "#4ECDC4", weight: 25 },
+            { name: "RM10券", color: "#45B7D1", weight: 12 },
+            { name: "再来一次", color: "#96CEB4", weight: 20 },
+            { name: "RM20券", color: "#FFEAA7", weight: 8 },
+            { name: "330ml罐", color: "#DDA0DD", weight: 10 },
+            { name: "660ml瓶", color: "#98D8C8", weight: 5 },
+            { name: "1602笔", color: "#F7DC6F", weight: 15 },
+            { name: "保冷袋", color: "#BB8FCE", weight: 8 },
+            { name: "1602杯", color: "#85C1E9", weight: 12 },
+            { name: "酒卡", color: "#F8C471", weight: 7 },
+            { name: "酒卡", color: "#82E0AA", weight: 5 }
         ];
 
         // 语言切换功能
@@ -427,6 +444,9 @@
                     }
                 }
             });
+            
+            // 重新绘制轮盘以更新奖品名称
+            drawWheel();
             
             // 保存语言偏好
             localStorage.setItem('preferredLanguage', lang);
