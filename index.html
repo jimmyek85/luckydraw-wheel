@@ -559,6 +559,99 @@
         // Global variables
         let currentLang = 'en';
         let knowledgeBaseContent = '';
+        let currentUser = null;
+        let userDataListener = null;
+
+        // Real-time user data listener
+        function setupUserDataListener(userId) {
+            // Remove existing listener if any
+            if (userDataListener) {
+                userDataListener();
+                userDataListener = null;
+            }
+
+            // Set up new listener for current user
+            const userRef = doc(db, 'users', userId);
+            userDataListener = onSnapshot(userRef, (doc) => {
+                if (doc.exists()) {
+                    const userData = doc.data();
+                    currentUser = { id: doc.id, ...userData };
+                    
+                    // Update UI with real-time data
+                    updateUserInterface(userData);
+                    
+                    console.log('User data updated in real-time:', userData);
+                } else {
+                    console.log('User document does not exist');
+                }
+            }, (error) => {
+                console.error('Error listening to user data:', error);
+            });
+        }
+
+        // Update user interface with real-time data
+        function updateUserInterface(userData) {
+            const userNameDisplay = document.getElementById('user-name-display');
+            const chancesLeft = document.getElementById('chances-left');
+            
+            if (userNameDisplay) {
+                userNameDisplay.textContent = userData.name || 'User';
+            }
+            
+            if (chancesLeft) {
+                chancesLeft.textContent = userData.chances || 0;
+            }
+
+            // Update spin button state based on chances
+            const spinBtn = document.getElementById('spin-btn');
+            if (spinBtn) {
+                spinBtn.disabled = (userData.chances || 0) <= 0;
+                if (userData.chances <= 0) {
+                    spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+
+        // Real-time settings listener
+        function setupSettingsListener() {
+            const settingsRef = doc(db, 'settings', 'app');
+            onSnapshot(settingsRef, (doc) => {
+                if (doc.exists()) {
+                    const settings = doc.data();
+                    
+                    // Update announcement if changed
+                    if (settings.announcement) {
+                        showAnnouncement(settings.announcement);
+                    }
+                    
+                    // Update knowledge base
+                    if (settings.knowledge) {
+                        knowledgeBaseContent = settings.knowledge;
+                    }
+                    
+                    console.log('Settings updated in real-time:', settings);
+                }
+            }, (error) => {
+                console.error('Error listening to settings:', error);
+            });
+        }
+
+        // Enhanced user data update function
+        async function updateUserData(userId, updates) {
+            try {
+                const userRef = doc(db, 'users', userId);
+                await updateDoc(userRef, {
+                    ...updates,
+                    lastUpdated: serverTimestamp()
+                });
+                console.log('User data updated successfully');
+            } catch (error) {
+                console.error('Error updating user data:', error);
+                throw error;
+            }
+        }
 
         // Language switching function
         function switchLanguage(lang) {
@@ -743,6 +836,15 @@
                 let userData;
                 if (userDoc.exists()) {
                     userData = userDoc.data();
+                    
+                    // Update existing user with enhanced function
+                    await updateUserData(fullPhone, {
+                        name: name,
+                        email: email || userData.email || '',
+                        address: address || userData.address || '',
+                        lastLogin: serverTimestamp()
+                    });
+                    
                     alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
                 } else {
                     userData = {
@@ -752,28 +854,24 @@
                         address: address || '',
                         chances: 1,
                         prizes: [],
-                        createdAt: new Date()
+                        createdAt: serverTimestamp(),
+                        lastLogin: serverTimestamp()
                     };
                     await setDoc(userRef, userData);
                     alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
                 }
                 
+                // Set up real-time listener for this user
+                setupUserDataListener(fullPhone);
+                
+                // Store current user ID for future operations
+                window.currentUserId = fullPhone;
+                
                 // Switch to wheel page first
                 document.getElementById('register-page').classList.add('hidden');
                 document.getElementById('wheel-page').classList.remove('hidden');
                 
-                // Then set the content after page is visible
-                setTimeout(() => {
-                    const userNameDisplay = document.getElementById('user-name-display');
-                    const chancesLeft = document.getElementById('chances-left');
-                    
-                    if (userNameDisplay) {
-                        userNameDisplay.textContent = userData.name;
-                    }
-                    if (chancesLeft) {
-                        chancesLeft.textContent = userData.chances || 0;
-                    }
-                }, 100);
+                // The UI will be updated automatically by the real-time listener
                 
             } catch (error) {
                 console.error("Registration error:", error);
@@ -791,6 +889,11 @@
                 return;
             }
             
+            if (!window.currentUserId) {
+                alert("User not found. Please register again.");
+                return;
+            }
+            
             spinBtn.disabled = true;
             
             // Simulate spinning animation
@@ -801,18 +904,43 @@
             const randomRotation = Math.random() * 360 + 1440; // At least 4 full rotations
             wheel.style.transform = `rotate(${randomRotation}deg)`;
             
-            setTimeout(() => {
+            setTimeout(async () => {
                 wrapper.classList.remove('spinning-neon');
                 
                 // Determine prize based on weighted probability
                 const wonPrize = selectPrizeByWeight();
                 
-                showPrizeModal(wonPrize);
-                spinBtn.disabled = false;
+                try {
+                    // Update user data in real-time
+                    const updates = {
+                        lastSpin: serverTimestamp()
+                    };
+                    
+                    if (wonPrize === 'Spin Again!') {
+                        // Don't reduce chances for "Spin Again!"
+                        updates.prizes = arrayUnion({
+                            prize: wonPrize,
+                            timestamp: serverTimestamp()
+                        });
+                    } else {
+                        // Reduce chances and add prize
+                        updates.chances = Math.max(0, chancesLeft - 1);
+                        updates.prizes = arrayUnion({
+                            prize: wonPrize,
+                            timestamp: serverTimestamp()
+                        });
+                    }
+                    
+                    await updateUserData(window.currentUserId, updates);
+                    
+                    showPrizeModal(wonPrize);
+                    
+                } catch (error) {
+                    console.error('Error updating user data after spin:', error);
+                    alert('Error saving spin result. Please try again.');
+                }
                 
-                // Update chances
-                const newChances = wonPrize === 'Spin Again!' ? chancesLeft : chancesLeft - 1;
-                document.getElementById('chances-left').textContent = newChances;
+                spinBtn.disabled = false;
                 
             }, 3000);
         }
@@ -995,6 +1123,9 @@
                 switchLanguage('zh');
 
                 await fetchSettings();
+                
+                // Set up real-time settings listener
+                setupSettingsListener();
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const source = urlParams.get('source');
@@ -1034,6 +1165,12 @@
                 feedbackModalCloseBtn.addEventListener('click', () => feedbackModal.classList.add('hidden'));
                 submitFeedbackBtn.addEventListener('click', submitFeedback);
 
+                // Clean up listeners when page unloads
+                window.addEventListener('beforeunload', () => {
+                    if (userDataListener) {
+                        userDataListener();
+                    }
+                });
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
