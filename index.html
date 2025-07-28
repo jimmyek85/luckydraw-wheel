@@ -592,13 +592,12 @@
                 const userRef = doc(db, 'users', fullPhone);
                 const userDoc = await getDoc(userRef);
                 
+                let userData;
                 if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    document.getElementById('user-name-display').textContent = userData.name;
-                    document.getElementById('chances-left').textContent = userData.chances || 0;
+                    userData = userDoc.data();
                     alert(langData[currentLang]["User already exists. Loading your data..."] || "User already exists. Loading your data...");
                 } else {
-                    await setDoc(userRef, {
+                    userData = {
                         name: name,
                         phone: fullPhone,
                         email: email || '',
@@ -606,16 +605,27 @@
                         chances: 1,
                         prizes: [],
                         createdAt: new Date()
-                    });
-                    
-                    document.getElementById('user-name-display').textContent = name;
-                    document.getElementById('chances-left').textContent = '1';
+                    };
+                    await setDoc(userRef, userData);
                     alert(langData[currentLang]["Registration successful!"] || "Registration successful!");
                 }
                 
-                // Switch to wheel page
+                // Switch to wheel page first
                 document.getElementById('register-page').classList.add('hidden');
                 document.getElementById('wheel-page').classList.remove('hidden');
+                
+                // Then set the content after page is visible
+                setTimeout(() => {
+                    const userNameDisplay = document.getElementById('user-name-display');
+                    const chancesLeft = document.getElementById('chances-left');
+                    
+                    if (userNameDisplay) {
+                        userNameDisplay.textContent = userData.name;
+                    }
+                    if (chancesLeft) {
+                        chancesLeft.textContent = userData.chances || 0;
+                    }
+                }, 100);
                 
             } catch (error) {
                 console.error("Registration error:", error);
