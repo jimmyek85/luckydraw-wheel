@@ -349,8 +349,12 @@
         // Language functions
         function setLanguage(lang) {
             currentLanguage = lang;
-            document.querySelectorAll('.language-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.language-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.onclick && btn.onclick.toString().includes(lang)) {
+                    btn.classList.add('active');
+                }
+            });
             updateLanguage();
         }
 
@@ -416,31 +420,55 @@
             const content = document.getElementById('modal-content');
             const icon = document.getElementById('modal-icon');
             
-            if (prize.text === 'Thank You') {
-                icon.textContent = '😔';
-                title.textContent = currentLanguage === 'en' ? 'Thank You for Playing!' : '感谢参与！';
-                content.innerHTML = `<p>${currentLanguage === 'en' ? 'Better luck next time!' : '祝您下次好运！'}</p>`;
-            } else if (prize.text === 'Spin Again') {
-                icon.textContent = '🎯';
-                title.textContent = currentLanguage === 'en' ? 'Spin Again!' : '再来一次！';
-                content.innerHTML = `<p>${currentLanguage === 'en' ? 'You got an extra spin chance!' : '您获得了额外的抽奖机会！'}</p>`;
-            } else {
-                icon.textContent = '🎉';
-                title.textContent = currentLanguage === 'en' ? 'Congratulations!' : '恭喜！';
-                const prizeText = currentLanguage === 'en' ? prize.text : prize.textZh;
-                content.innerHTML = `<p>${currentLanguage === 'en' ? 'You won:' : '您获得了：'} <strong>${prizeText}</strong>!</p>`;
+            if (!modal || !title || !content || !icon) {
+                console.error('Modal elements not found');
+                alert(currentLanguage === 'en' ? 'Display error, please refresh the page' : '显示错误，请刷新页面');
+                return;
             }
             
-            modal.classList.remove('hidden');
+            try {
+                if (prize.text === 'Thank You') {
+                    icon.textContent = '😔';
+                    title.textContent = currentLanguage === 'en' ? 'Thank You for Playing!' : '感谢参与！';
+                    content.innerHTML = `<p>${currentLanguage === 'en' ? 'Better luck next time!' : '祝您下次好运！'}</p>`;
+                } else if (prize.text === 'Spin Again') {
+                    icon.textContent = '🎯';
+                    title.textContent = currentLanguage === 'en' ? 'Spin Again!' : '再来一次！';
+                    content.innerHTML = `<p>${currentLanguage === 'en' ? 'You got an extra spin chance!' : '您获得了额外的抽奖机会！'}</p>`;
+                } else {
+                    icon.textContent = '🎉';
+                    title.textContent = currentLanguage === 'en' ? 'Congratulations!' : '恭喜！';
+                    const prizeText = currentLanguage === 'en' ? prize.text : prize.textZh;
+                    content.innerHTML = `<p>${currentLanguage === 'en' ? 'You won:' : '您获得了：'} <strong>${prizeText}</strong>!</p>`;
+                }
+                
+                modal.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error showing result:', error);
+                alert(currentLanguage === 'en' ? 'Result display error' : '结果显示错误');
+            }
         }
 
         // Spin function
         async function spin() {
+            if (!currentUser) {
+                alert(currentLanguage === 'en' ? 'Please register first' : '请先注册');
+                return;
+            }
+            
             if (isSpinning) return;
             
             const spinBtn = document.getElementById('spin-btn');
             const wheel = document.getElementById('wheel');
-            const chancesLeft = parseInt(document.getElementById('chances-left').textContent);
+            const chancesLeftEl = document.getElementById('chances-left');
+            
+            if (!spinBtn || !wheel || !chancesLeftEl) {
+                console.error('Required elements not found for spinning');
+                alert(currentLanguage === 'en' ? 'Spin error, please refresh the page' : '抽奖错误，请刷新页面');
+                return;
+            }
+            
+            const chancesLeft = parseInt(chancesLeftEl.textContent);
             
             if (chancesLeft <= 0) {
                 alert(currentLanguage === 'en' ? 'No chances left!' : '没有抽奖机会了！');
@@ -474,7 +502,9 @@
                         
                         if (prize.text !== 'Spin Again') {
                             updates.chances = Math.max(0, chancesLeft - 1);
-                            document.getElementById('chances-left').textContent = updates.chances;
+                            if (chancesLeftEl) {
+                                chancesLeftEl.textContent = updates.chances;
+                            }
                             currentUser.chances = updates.chances;
                         } else {
                             // Spin Again gives an extra chance
@@ -504,9 +534,19 @@
         async function handleRegistration(e) {
             e.preventDefault();
             
-            const name = document.getElementById('name').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const email = document.getElementById('email').value.trim();
+            const nameEl = document.getElementById('name');
+            const phoneEl = document.getElementById('phone');
+            const emailEl = document.getElementById('email');
+            
+            if (!nameEl || !phoneEl) {
+                console.error('Required form elements not found');
+                alert('Form error, please refresh the page');
+                return;
+            }
+            
+            const name = nameEl.value.trim();
+            const phone = phoneEl.value.trim();
+            const email = emailEl ? emailEl.value.trim() : '';
             
             if (!name || !phone) {
                 alert(currentLanguage === 'en' ? 'Please fill in required fields' : '请填写必填项');
@@ -535,13 +575,18 @@
                     alert(currentLanguage === 'en' ? 'Registration successful!' : '注册成功！');
                 }
                 
-                // Update UI
-                document.getElementById('user-name').textContent = currentUser.name;
-                document.getElementById('chances-left').textContent = currentUser.chances || 1;
+                // Update UI with safety checks
+                const userNameEl = document.getElementById('user-name');
+                const chancesLeftEl = document.getElementById('chances-left');
+                const registerPageEl = document.getElementById('register-page');
+                const wheelPageEl = document.getElementById('wheel-page');
+                
+                if (userNameEl) userNameEl.textContent = currentUser.name;
+                if (chancesLeftEl) chancesLeftEl.textContent = currentUser.chances || 1;
                 
                 // Switch to wheel page
-                document.getElementById('register-page').classList.add('hidden');
-                document.getElementById('wheel-page').classList.remove('hidden');
+                if (registerPageEl) registerPageEl.classList.add('hidden');
+                if (wheelPageEl) wheelPageEl.classList.remove('hidden');
                 
                 // Redraw wheel with current language
                 drawWheel();
@@ -582,25 +627,46 @@
         // Admin functions
         function toggleAdmin() {
             const panel = document.getElementById('admin-panel');
-            panel.classList.toggle('hidden');
+            if (panel) {
+                panel.classList.toggle('hidden');
+            } else {
+                console.error('Admin panel element not found');
+            }
         }
 
         function findUser() {
-            const phone = document.getElementById('admin-phone').value.trim();
-            if (!phone) return;
+            const phoneEl = document.getElementById('admin-phone');
+            const userInfoEl = document.getElementById('user-info');
             
-            const userData = getUserData(phone);
-            const userInfo = document.getElementById('user-info');
+            if (!phoneEl || !userInfoEl) {
+                console.error('Admin form elements not found');
+                alert('Admin panel error, please refresh the page');
+                return;
+            }
             
-            if (userData) {
-                adminUser = { id: phone, ...userData };
-                userInfo.innerHTML = `
-                    <div>Name: ${userData.name}</div>
-                    <div>Chances: ${userData.chances || 0}</div>
-                    <div>Prizes: ${userData.prizes?.length || 0}</div>
-                `;
-            } else {
-                userInfo.innerHTML = '<div>User not found</div>';
+            const phone = phoneEl.value.trim();
+            if (!phone) {
+                alert('Please enter a phone number');
+                return;
+            }
+            
+            try {
+                const userData = getUserData(phone);
+                
+                if (userData) {
+                    adminUser = { id: phone, ...userData };
+                    userInfoEl.innerHTML = `
+                        <div>Name: ${userData.name}</div>
+                        <div>Chances: ${userData.chances || 0}</div>
+                        <div>Prizes: ${userData.prizes?.length || 0}</div>
+                    `;
+                } else {
+                    userInfoEl.innerHTML = '<div>User not found</div>';
+                    adminUser = null;
+                }
+            } catch (error) {
+                console.error('Error finding user:', error);
+                userInfoEl.innerHTML = '<div>Error finding user</div>';
                 adminUser = null;
             }
         }
@@ -611,24 +677,40 @@
                 return;
             }
             
-            const updated = updateUserData(adminUser.id, {
-                chances: (adminUser.chances || 0) + 1
-            });
+            const userInfoEl = document.getElementById('user-info');
+            const chancesLeftEl = document.getElementById('chances-left');
             
-            adminUser = { id: adminUser.id, ...updated };
-            document.getElementById('user-info').innerHTML = `
-                <div>Name: ${updated.name}</div>
-                <div>Chances: ${updated.chances || 0}</div>
-                <div>Prizes: ${updated.prizes?.length || 0}</div>
-            `;
-            
-            // Update current user if it's the same person
-            if (currentUser && currentUser.id === adminUser.id) {
-                currentUser = adminUser;
-                document.getElementById('chances-left').textContent = currentUser.chances;
+            if (!userInfoEl) {
+                console.error('User info element not found');
+                alert('Admin panel error, please refresh the page');
+                return;
             }
             
-            alert('Chance added successfully!');
+            try {
+                const updated = updateUserData(adminUser.id, {
+                    chances: (adminUser.chances || 0) + 1
+                });
+                
+                adminUser = { id: adminUser.id, ...updated };
+                userInfoEl.innerHTML = `
+                    <div>Name: ${updated.name}</div>
+                    <div>Chances: ${updated.chances || 0}</div>
+                    <div>Prizes: ${updated.prizes?.length || 0}</div>
+                `;
+                
+                // Update current user if it's the same person
+                if (currentUser && currentUser.id === adminUser.id) {
+                    currentUser = adminUser;
+                    if (chancesLeftEl) {
+                        chancesLeftEl.textContent = currentUser.chances;
+                    }
+                }
+                
+                alert('Chance added successfully!');
+            } catch (error) {
+                console.error('Error adding chance:', error);
+                alert('Failed to add chance, please try again');
+            }
         }
 
         // Initialize app
@@ -639,29 +721,56 @@
                 // Draw wheel
                 drawWheel();
                 
-                // Event listeners
-                document.getElementById('enter-btn').addEventListener('click', () => {
-                    document.getElementById('landing-page').classList.add('hidden');
-                    document.getElementById('register-page').classList.remove('hidden');
-                });
+                // Event listeners with safety checks
+                const enterBtn = document.getElementById('enter-btn');
+                const registerForm = document.getElementById('register-form');
+                const spinBtn = document.getElementById('spin-btn');
+                const modalClose = document.getElementById('modal-close');
+                const shareFb = document.getElementById('share-fb');
+                const shareWhatsapp = document.getElementById('share-whatsapp');
+                const copyLinkBtn = document.getElementById('copy-link');
+                const findUserBtn = document.getElementById('find-user');
+                const addChanceBtn = document.getElementById('add-chance');
+                const toggleAdminBtn = document.getElementById('toggle-admin');
                 
-                document.getElementById('register-form').addEventListener('submit', handleRegistration);
-                document.getElementById('spin-btn').addEventListener('click', spin);
-                document.getElementById('modal-close').addEventListener('click', () => {
-                    document.getElementById('result-modal').classList.add('hidden');
-                });
+                if (enterBtn) {
+                    enterBtn.addEventListener('click', () => {
+                        const landingPage = document.getElementById('landing-page');
+                        const registerPage = document.getElementById('register-page');
+                        if (landingPage) landingPage.classList.add('hidden');
+                        if (registerPage) registerPage.classList.remove('hidden');
+                    });
+                }
+                
+                if (registerForm) {
+                    registerForm.addEventListener('submit', handleRegistration);
+                }
+                
+                if (spinBtn) {
+                    spinBtn.addEventListener('click', spin);
+                }
+                
+                if (modalClose) {
+                    modalClose.addEventListener('click', () => {
+                        const resultModal = document.getElementById('result-modal');
+                        if (resultModal) resultModal.classList.add('hidden');
+                    });
+                }
                 
                 // Share buttons
-                document.getElementById('share-fb').addEventListener('click', shareToFacebook);
-                document.getElementById('share-whatsapp').addEventListener('click', shareToWhatsApp);
-                document.getElementById('copy-link').addEventListener('click', copyLink);
+                if (shareFb) shareFb.addEventListener('click', shareToFacebook);
+                if (shareWhatsapp) shareWhatsapp.addEventListener('click', shareToWhatsApp);
+                if (copyLinkBtn) copyLinkBtn.addEventListener('click', copyLink);
                 
                 // Admin functions
-                document.getElementById('find-user').addEventListener('click', findUser);
-                document.getElementById('add-chance').addEventListener('click', addChance);
-                document.getElementById('toggle-admin').addEventListener('click', () => {
-                    document.getElementById('admin-panel').classList.add('hidden');
-                });
+                if (findUserBtn) findUserBtn.addEventListener('click', findUser);
+                if (addChanceBtn) addChanceBtn.addEventListener('click', addChance);
+                if (toggleAdminBtn) {
+                    toggleAdminBtn.addEventListener('click', () => {
+                        const adminPanel = document.getElementById('admin-panel');
+                        if (adminPanel) adminPanel.classList.add('hidden');
+                    });
+                }
                 
                 // Language update
                 updateLanguage();
@@ -670,13 +779,16 @@
                 
             } catch (error) {
                 console.error('Initialization error:', error);
-                document.getElementById('app').innerHTML = `
-                    <div class="text-center text-white">
-                        <h2 class="text-2xl font-bold mb-4">Connection Error</h2>
-                        <p>Unable to connect to server, please try again later</p>
-                        <p class="text-sm mt-2">Error: ${error.message}</p>
-                    </div>
-                `;
+                const appEl = document.getElementById('app');
+                if (appEl) {
+                    appEl.innerHTML = `
+                        <div class="text-center text-white">
+                            <h2 class="text-2xl font-bold mb-4">Connection Error</h2>
+                            <p>Unable to connect to server, please try again later</p>
+                            <p class="text-sm mt-2">Error: ${error.message}</p>
+                        </div>
+                    `;
+                }
             }
         }
 
