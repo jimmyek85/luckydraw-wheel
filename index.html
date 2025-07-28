@@ -237,7 +237,7 @@
             
             <div>
                 <button id="spin-btn" class="spin-button" data-en="SPIN" data-zh="开始抽奖">
-                    <i class="fas fa-play mr-2"></i>SPIN (<span id="chances-display">1</span> <span data-en="chances left" data-zh="次机会">chances left</span>)
+                    <i class="fas fa-play mr-2"></i>SPIN (1 <span data-en="chances left" data-zh="次机会">chances left</span>)
                 </button>
             </div>
         </div>
@@ -475,7 +475,6 @@
                         if (prize.text !== 'Spin Again') {
                             updates.chances = Math.max(0, chancesLeft - 1);
                             document.getElementById('chances-left').textContent = updates.chances;
-                            document.getElementById('chances-display').textContent = updates.chances;
                             currentUser.chances = updates.chances;
                         } else {
                             // Spin Again gives an extra chance
@@ -496,7 +495,8 @@
                 
                 isSpinning = false;
                 spinBtn.disabled = false;
-                spinBtn.innerHTML = `<i class="fas fa-play mr-2"></i>${currentLanguage === 'en' ? 'SPIN' : '开始抽奖'} (<span id="chances-display">${currentUser?.chances || 0}</span> ${currentLanguage === 'en' ? 'chances left' : '次机会'})`;
+                const chancesText = currentLanguage === 'en' ? 'chances left' : '次机会';
+                spinBtn.innerHTML = `<i class="fas fa-play mr-2"></i>${currentLanguage === 'en' ? 'SPIN' : '开始抽奖'} (${currentUser?.chances || 0} ${chancesText})`;
             }, 4000);
         }
 
@@ -538,7 +538,6 @@
                 // Update UI
                 document.getElementById('user-name').textContent = currentUser.name;
                 document.getElementById('chances-left').textContent = currentUser.chances || 1;
-                document.getElementById('chances-display').textContent = currentUser.chances || 1;
                 
                 // Switch to wheel page
                 document.getElementById('register-page').classList.add('hidden');
@@ -627,7 +626,6 @@
             if (currentUser && currentUser.id === adminUser.id) {
                 currentUser = adminUser;
                 document.getElementById('chances-left').textContent = currentUser.chances;
-                document.getElementById('chances-display').textContent = currentUser.chances;
             }
             
             alert('Chance added successfully!');
