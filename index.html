@@ -416,6 +416,7 @@
                 "Cash Voucher RM5": "Cash Voucher RM5",
                 "Online Voucher RM10": "Online Voucher RM10",
                 "Online Voucher RM20": "Online Voucher RM20",
+                "Online Voucher RM50": "Online Voucher RM50",
                 "New 330ml Can": "New 330ml Can",
                 "Free 660ml Bottle": "Free 660ml Bottle",
                 "1602 Pen": "1602 Pen",
@@ -615,18 +616,16 @@
             const radius = 180;
             
             const prizes = [
-                { text: 'Cash Voucher RM5', color: '#4ECDC4', textColor: '#FFFFFF', weight: 8 },
-                { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 8 },
-                { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 8 },
-                { text: 'Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 6 },
-                { text: 'Online Voucher RM10', color: '#45B7D1', textColor: '#FFFFFF', weight: 5 },
-                { text: 'Online Voucher RM20', color: '#96CEB4', textColor: '#FFFFFF', weight: 4 },
-                { text: 'New 330ml Can', color: '#FFEAA7', textColor: '#2D3436', weight: 5 },
-                { text: 'Free 660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 5 },
-                { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 5 },
-                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 }, // 中奖率为0，但保留在轮盘上
-                { text: 'Beer Card', color: '#A29BFE', textColor: '#FFFFFF', weight: 0 }, // 中奖率为0，但保留在轮盘上
-                { text: 'Wine Card', color: '#E17055', textColor: '#FFFFFF', weight: 0 } // 中奖率为0，但保留在轮盘上
+                { text: 'Wine Card', color: '#E91E63', textColor: '#FFFFFF', weight: 8 },           // Wine Card - 紫红色
+                { text: 'Cooler Bag', color: '#4CAF50', textColor: '#FFFFFF', weight: 10 },         // Cooler Bag - 绿色
+                { text: 'Online Voucher RM50', color: '#8BC34A', textColor: '#FFFFFF', weight: 3 }, // Online Voucher RM50 - 黄绿色
+                { text: 'Cash Voucher RM5', color: '#FFC107', textColor: '#2D3436', weight: 15 },   // Cash Voucher RM5 - 黄色
+                { text: 'Thank You', color: '#607D8B', textColor: '#FFFFFF', weight: 25 },          // Thank You - 灰色
+                { text: 'Online Voucher RM10', color: '#2196F3', textColor: '#FFFFFF', weight: 12 }, // Online Voucher RM10 - 蓝色
+                { text: 'Free 660ml Bottle', color: '#F44336', textColor: '#FFFFFF', weight: 6 },   // Free 660ml Bottle - 红色
+                { text: '1602 Mug', color: '#9C27B0', textColor: '#FFFFFF', weight: 10 },           // 1602 Mug - 紫色
+                { text: 'Spin Again!', color: '#FF9800', textColor: '#FFFFFF', weight: 18 },        // Spin Again! - 橙色
+                { text: 'Online Voucher RM20', color: '#009688', textColor: '#FFFFFF', weight: 8 }  // Online Voucher RM20 - 青绿色
             ];
             
             // Create weighted prize array for fair distribution (only for winning logic)
