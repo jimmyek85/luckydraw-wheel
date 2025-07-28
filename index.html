@@ -420,7 +420,10 @@
                 "User already exists. Loading your data...": "User already exists. Loading your data...",
                 "Registration successful!": "Registration successful!",
                 "Please fill in required fields.": "Please fill in required fields.",
-                "Please enter a valid phone number (digits only).": "Please enter a valid phone number (digits only)."
+                "Please enter a valid phone number (digits only).": "Please enter a valid phone number (digits only).",
+                "Congratulations! Come to our booth to claim your prize!": "Congratulations! Come to our booth to claim your prize!",
+                "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!": "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!",
+                "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!": "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!"
             },
             zh: {
                 "Welcome to 1602": "欢迎来到 1602",
@@ -489,7 +492,10 @@
                 "User already exists. Loading your data...": "用户已存在，正在加载您的数据...",
                 "Registration successful!": "注册成功！",
                 "Please fill in required fields.": "请填写必填项。",
-                "Please enter a valid phone number (digits only).": "请输入有效的电话号码（仅限数字）。"
+                "Please enter a valid phone number (digits only).": "请输入有效的电话号码（仅限数字）。",
+                "Congratulations! Come to our booth to claim your prize!": "恭喜中奖！快来我们档口兑换奖品吧！",
+                "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!": "访问我们的Facebook页面，来到1602档口扫码获大奖！",
+                "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!": "欢迎！快来参与我们1602档口的扫码活动，免费获得大奖！千万别错过！"
             }
         };
 
@@ -890,14 +896,14 @@
                 title.textContent = langData[currentLang]["Congratulations!"] || "Congratulations!";
                 content.innerHTML = `
                     <p>${langData[currentLang]["You won a"] || "You won a"} ${langData[currentLang][prize] || prize}!</p>
+                    <p class="text-lg font-bold text-yellow-400 mt-2">${langData[currentLang]["Congratulations! Come to our booth to claim your prize!"] || "Congratulations! Come to our booth to claim your prize!"}</p>
                     <div class="mt-4 p-3 bg-yellow-600 rounded-lg">
-                        <p class="text-sm text-white mb-2">🎉 恭喜中奖！快来我们店里兑换奖品吧！</p>
                         <div class="flex gap-2">
                             <button onclick="getStoreLocation()" class="flex-1 bg-yellow-700 hover:bg-yellow-800 text-white py-2 px-3 rounded text-xs">
-                                店铺位置
+                                ${currentLang === 'en' ? 'Store Location' : '店铺位置'}
                             </button>
                             <button onclick="callStore()" class="flex-1 bg-yellow-700 hover:bg-yellow-800 text-white py-2 px-3 rounded text-xs">
-                                联系我们
+                                ${currentLang === 'en' ? 'Contact Us' : '联系我们'}
                             </button>
                         </div>
                     </div>
@@ -1068,6 +1074,35 @@
             }
         }
         
+        // Share function for social media
+        function share(platform) {
+            const shareText = langData[currentLang]["Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!"] || "Visit our Facebook page and get amazing prizes by scanning QR codes at our 1602 booth!";
+            const whatsappText = langData[currentLang]["Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!"] || "Welcome! Join our exciting QR code scanning activity at 1602 booth for FREE amazing prizes! Don't miss out!";
+            const shareUrl = window.location.href;
+            
+            switch(platform) {
+                case 'facebook':
+                    window.open('https://www.facebook.com/1602craftbeer', '_blank');
+                    // Show message about QR code scanning
+                    setTimeout(() => {
+                        alert(shareText);
+                    }, 1000);
+                    break;
+                case 'instagram':
+                    // Copy text to clipboard for Instagram sharing
+                    navigator.clipboard.writeText(shareText + ' ' + shareUrl).then(() => {
+                        alert(langData[currentLang]["Copied to clipboard!"] || "Copied to clipboard!");
+                        window.open('https://www.instagram.com/1602craftbeer', '_blank');
+                    });
+                    break;
+                case 'copy_whatsapp':
+                    // Open WhatsApp with message
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText + ' ' + shareUrl)}`;
+                    window.open(whatsappUrl, '_blank');
+                    break;
+            }
+        }
+
         // Share AI-generated idea
         function shareAIIdea(idea) {
             const shareText = `🍺 1602精酿啤酒AI推荐：${idea} 快来参加我们的幸运抽奖活动！`;
@@ -1301,6 +1336,13 @@
                 
                 // AI creative idea button
                 if (geminiIdeaBtn) geminiIdeaBtn.addEventListener('click', generateCreativeIdea);
+                
+                // Language toggle buttons
+                const enBtn = document.getElementById('en-btn');
+                const zhBtn = document.getElementById('zh-btn');
+                
+                if (enBtn) enBtn.addEventListener('click', () => switchLanguage('en'));
+                if (zhBtn) zhBtn.addEventListener('click', () => switchLanguage('zh'));
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
