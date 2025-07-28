@@ -1,24 +1,26 @@
 {
-  "name": "luckydraw-wheel-1602",
+  "name": "1602-lucky-draw",
   "version": "1.0.0",
-  "description": "1602 Lucky Draw Wheel Application",
+  "description": "1602 Lucky Draw Wheel Application for Kuching Festival",
   "main": "index.html",
   "scripts": {
-    "start": "firebase serve",
-    "build": "echo 'No build step required for static site'",
-    "deploy": "firebase deploy",
-    "serve": "firebase serve --host 0.0.0.0 --port 5000"
+    "start": "serve -s . -l 3000",
+    "build": "echo 'No build process needed for static site'",
+    "dev": "serve -s . -l 3000"
   },
   "keywords": [
     "lucky-draw",
     "wheel",
-    "firebase",
     "1602",
-    "craft-beer"
+    "kuching-festival",
+    "prize-wheel"
   ],
-  "author": "1602 Craft Beer",
+  "author": "1602 Team",
   "license": "MIT",
   "devDependencies": {
-    "firebase-tools": "^14.11.1"
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
