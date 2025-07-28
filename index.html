@@ -331,20 +331,17 @@
                 "Submit Feedback": "Submit Feedback",
                 "Feedback submitted. Thank you!": "Feedback submitted. Thank you!",
                 "Wine Card": "Wine Card",
-                "Cash Voucher RM5": "Cash Voucher RM5",
-                "Online Voucher RM10": "Online Voucher RM10",
-                "Online Voucher RM20": "Online Voucher RM20",
-                "New 330ml Can": "New 330ml Can",
-                "Free 660ml Bottle": "Free 660ml Bottle",
+                "RM5 Cash voucher": "RM5 Cash voucher",
+                "RM10 Online Cash voucher": "RM10 Online Cash voucher",
+                "RM20 Online Cash voucher": "RM20 Online Cash voucher",
+                "330ml Lager Smooth": "330ml Lager Smooth",
+                "660ml Bottle": "660ml Bottle",
                 "1602 Pen": "1602 Pen",
-                "Cooler Bag": "Cooler Bag",
-                "1602 Mug": "1602 Mug",
+                "1602 Cooler Bag": "1602 Cooler Bag",
+                "1602 mug": "1602 mug",
                 "Thank You": "Thank You",
                 "Spin Again!": "Spin Again!",
                 "Beer Card": "Beer Card",
-                "330ml Lager Smooth": "330ml Lager Smooth",
-                "660ml Bottle": "660ml Bottle",
-                "1602 Cooler Bag": "1602 Cooler Bag",
                 "Congratulations!": "Congratulations!",
                 "Oh No...": "Oh No...",
                 "Awesome!": "Awesome!",
@@ -403,20 +400,17 @@
                 "Submit Feedback": "提交反馈",
                 "Feedback submitted. Thank you!": "反馈已提交，谢谢您！",
                 "Wine Card": "酒卡",
-                "Cash Voucher RM5": "RM5 现金券",
-                "Online Voucher RM10": "RM10 线上券",
-                "Online Voucher RM20": "RM20 线上券",
-                "New 330ml Can": "330ml罐装新品",
-                "Free 660ml Bottle": "免费660ml瓶装",
+                "RM5 Cash voucher": "现金券RM5",
+                "RM10 Online Cash voucher": "线上现金券RM10",
+                "RM20 Online Cash voucher": "线上现金券RM20",
+                "330ml Lager Smooth": "330ml新品Lager Smooth 1罐",
+                "660ml Bottle": "660ml瓶装 1瓶",
                 "1602 Pen": "1602纪念笔",
-                "Cooler Bag": "保冷袋",
-                "1602 Mug": "纪念酒杯",
+                "1602 Cooler Bag": "1602保冷袋",
+                "1602 mug": "1602纪念陶瓷杯",
                 "Thank You": "谢谢参与",
                 "Spin Again!": "再来一次！",
                 "Beer Card": "酒卡",
-                "330ml Lager Smooth": "330ml新品Lager Smooth 1罐",
-                "660ml Bottle": "660ml瓶装 1瓶",
-                "1602 Cooler Bag": "1602保冷袋",
                 "Congratulations!": "恭喜！",
                 "Oh No...": "很遗憾...",
                 "Awesome!": "太棒了！",
@@ -518,7 +512,7 @@
 
         // Draw the wheel
         function drawWheel() {
-            const canvas = document.getElementById('wheel');
+            const canvas = document.getElementById('canvas');
             if (!canvas) return;
             
             const ctx = canvas.getContext('2d');
@@ -528,14 +522,14 @@
             
             const prizes = [
                 { text: 'Beer Card', color: '#FF6B6B', textColor: '#FFFFFF', weight: 0 },
-                { text: 'Cash Voucher RM5', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
-                { text: 'Online Voucher RM10', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
-                { text: 'Online Voucher RM20', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
+                { text: 'RM5 Cash voucher', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
+                { text: 'RM10 Online Cash voucher', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
+                { text: 'RM20 Online Cash voucher', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
                 { text: '330ml Lager Smooth', color: '#FFEAA7', textColor: '#2D3436', weight: 9 },
                 { text: '660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 6 },
                 { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 12 },
                 { text: '1602 Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 12 },
-                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
+                { text: '1602 mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
                 { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 14 },
                 { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 16 }
             ];
@@ -646,7 +640,7 @@
             spinBtn.disabled = true;
             
             // Simulate spinning animation
-            const wheel = document.getElementById('wheel');
+            const wheel = document.getElementById('canvas');
             const wrapper = document.getElementById('wheel-wrapper');
             wrapper.classList.add('spinning-neon');
             
@@ -671,7 +665,7 @@
 
         // Select prize based on weight
         function selectPrizeByWeight() {
-            const canvas = document.getElementById('wheel');
+            const canvas = document.getElementById('canvas');
             if (!canvas) return 'Thank You';
             
             const ctx = canvas.getContext('2d');
@@ -681,14 +675,14 @@
             
             const prizes = [
                 { text: 'Beer Card', color: '#FF6B6B', textColor: '#FFFFFF', weight: 0 },
-                { text: 'Cash Voucher RM5', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
-                { text: 'Online Voucher RM10', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
-                { text: 'Online Voucher RM20', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
+                { text: 'RM5 Cash voucher', color: '#4ECDC4', textColor: '#FFFFFF', weight: 16 },
+                { text: 'RM10 Online Cash voucher', color: '#45B7D1', textColor: '#FFFFFF', weight: 9 },
+                { text: 'RM20 Online Cash voucher', color: '#96CEB4', textColor: '#FFFFFF', weight: 6 },
                 { text: '330ml Lager Smooth', color: '#FFEAA7', textColor: '#2D3436', weight: 9 },
                 { text: '660ml Bottle', color: '#DDA0DD', textColor: '#FFFFFF', weight: 6 },
                 { text: '1602 Pen', color: '#98D8C8', textColor: '#2D3436', weight: 12 },
                 { text: '1602 Cooler Bag', color: '#F7DC6F', textColor: '#2D3436', weight: 12 },
-                { text: '1602 Mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
+                { text: '1602 mug', color: '#BB8FCE', textColor: '#FFFFFF', weight: 0 },
                 { text: 'Thank You', color: '#85C1E9', textColor: '#2D3436', weight: 14 },
                 { text: 'Spin Again!', color: '#F8C471', textColor: '#2D3436', weight: 16 }
             ];
