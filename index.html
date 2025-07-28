@@ -19,6 +19,59 @@
             height: 400px;
             margin: auto;
         }
+        
+        /* 添加外圈霓虹灯装饰 */
+        .wheel-container::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid transparent;
+            background-image: linear-gradient(45deg, #ff0080, #00ff80, #8000ff, #ff8000);
+            background-size: 400% 400%;
+            animation: gradient-rotate 3s ease infinite;
+            z-index: -1;
+        }
+        
+        .wheel-container::after {
+            content: '';
+            position: absolute;
+            top: -25px;
+            left: -25px;
+            right: -25px;
+            bottom: -25px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.5),
+                inset 0 0 20px rgba(255, 0, 255, 0.3);
+            animation: outer-glow 4s ease-in-out infinite alternate;
+            z-index: -2;
+        }
+        
+        @keyframes gradient-rotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes outer-glow {
+            from {
+                box-shadow: 
+                    0 0 20px rgba(0, 255, 255, 0.5),
+                    inset 0 0 20px rgba(255, 0, 255, 0.3);
+            }
+            to {
+                box-shadow: 
+                    0 0 40px rgba(255, 0, 255, 0.8),
+                    inset 0 0 40px rgba(0, 255, 255, 0.5);
+            }
+        }
         #canvas {
             transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
@@ -90,17 +143,95 @@
         #wheel-wrapper {
             border-radius: 50%;
             transition: box-shadow 0.5s ease-in-out;
+            /* 常亮的霓虹边框 */
+            box-shadow: 
+                0 0 10px #00ffff,
+                0 0 20px #00ffff,
+                0 0 30px #00ffff,
+                0 0 40px #00ffff,
+                inset 0 0 10px #00ffff;
+            border: 3px solid #00ffff;
+            animation: neon-glow 2s ease-in-out infinite alternate;
         }
+        
+        /* 常亮霓虹灯效果 */
+        @keyframes neon-glow {
+            from {
+                box-shadow: 
+                    0 0 10px #00ffff,
+                    0 0 20px #00ffff,
+                    0 0 30px #00ffff,
+                    0 0 40px #00ffff,
+                    inset 0 0 10px #00ffff;
+                border-color: #00ffff;
+            }
+            to {
+                box-shadow: 
+                    0 0 15px #ff00ff,
+                    0 0 25px #ff00ff,
+                    0 0 35px #ff00ff,
+                    0 0 45px #ff00ff,
+                    inset 0 0 15px #ff00ff;
+                border-color: #ff00ff;
+            }
+        }
+        
+        /* 旋转时的闪烁霓虹效果 */
         .spinning-neon {
-            animation: neon-flicker 1.5s infinite alternate;
+            animation: neon-flicker 0.3s infinite, neon-glow 2s ease-in-out infinite alternate;
         }
+        
         @keyframes neon-flicker {
-          from {
-            box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #f0f, 0 0 40px #f0f, 0 0 50px #f0f, 0 0 60px #f0f, 0 0 70px #f0f;
-          }
-          to {
-            box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff, 0 0 25px #0ff, 0 0 30px #0ff, 0 0 35px #0ff;
-          }
+            0% {
+                box-shadow: 
+                    0 0 20px #ff0000,
+                    0 0 30px #ff0000,
+                    0 0 40px #ff0000,
+                    0 0 50px #ff0000,
+                    0 0 60px #ff0000,
+                    inset 0 0 20px #ff0000;
+                border-color: #ff0000;
+            }
+            25% {
+                box-shadow: 
+                    0 0 20px #00ff00,
+                    0 0 30px #00ff00,
+                    0 0 40px #00ff00,
+                    0 0 50px #00ff00,
+                    0 0 60px #00ff00,
+                    inset 0 0 20px #00ff00;
+                border-color: #00ff00;
+            }
+            50% {
+                box-shadow: 
+                    0 0 20px #0000ff,
+                    0 0 30px #0000ff,
+                    0 0 40px #0000ff,
+                    0 0 50px #0000ff,
+                    0 0 60px #0000ff,
+                    inset 0 0 20px #0000ff;
+                border-color: #0000ff;
+            }
+            75% {
+                box-shadow: 
+                    0 0 20px #ffff00,
+                    0 0 30px #ffff00,
+                    0 0 40px #ffff00,
+                    0 0 50px #ffff00,
+                    0 0 60px #ffff00,
+                    inset 0 0 20px #ffff00;
+                border-color: #ffff00;
+            }
+            100% {
+                box-shadow: 
+                    0 0 20px #ff00ff,
+                    0 0 30px #ff00ff,
+                    0 0 40px #ff00ff,
+                    0 0 50px #ff00ff,
+                    0 0 60px #ff00ff,
+                    inset 0 0 20px #ff00ff;
+                border-color: #ff00ff;
+            }
         }
     </style>
 </head>
