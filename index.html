@@ -638,6 +638,20 @@
             });
         }
 
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            console.error('Error message:', e.message);
+            console.error('Error filename:', e.filename);
+            console.error('Error line:', e.lineno);
+        });
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            e.preventDefault();
+        });
+
         // Enhanced user data update function
         async function updateUserData(userId, updates) {
             try {
@@ -646,7 +660,7 @@
                     ...updates,
                     lastUpdated: serverTimestamp()
                 });
-                console.log('User data updated successfully');
+                console.log('User data updated successfully:', updates);
             } catch (error) {
                 console.error('Error updating user data:', error);
                 throw error;
@@ -668,18 +682,68 @@
         // Fetch settings from Firestore
         async function fetchSettings() {
             try {
+                console.log('📋 Fetching settings from Firestore...');
                 const settingsDoc = await getDoc(doc(db, 'settings', 'app'));
                 if (settingsDoc.exists()) {
                     const settings = settingsDoc.data();
+                    console.log('✅ Settings loaded:', settings);
                     if (settings.announcement) {
                         showAnnouncement(settings.announcement);
                     }
                     if (settings.knowledge) {
                         knowledgeBaseContent = settings.knowledge;
                     }
+                } else {
+                    console.log('⚠️ Settings document does not exist, creating default settings...');
+                    await initializeDefaultSettings();
                 }
             } catch (error) {
-                console.error("Error fetching settings:", error);
+                console.error("❌ Error fetching settings:", error);
+                // Continue without settings if there's an error
+            }
+        }
+
+        // Initialize default settings if they don't exist
+        async function initializeDefaultSettings() {
+            try {
+                const defaultSettings = {
+                    announcement: '',
+                    knowledge: 'Welcome to 1602 Lucky Draw! Spin the wheel to win amazing prizes.',
+                    lastUpdated: serverTimestamp()
+                };
+                
+                await setDoc(doc(db, 'settings', 'app'), defaultSettings);
+                console.log('✅ Default settings created successfully');
+            } catch (error) {
+                console.error('❌ Error creating default settings:', error);
+            }
+        }
+
+        // Test Firestore connection
+        async function testFirestoreConnection() {
+            try {
+                console.log('🧪 Testing Firestore read/write operations...');
+                
+                // Test write operation
+                const testDoc = doc(db, 'test', 'connection');
+                await setDoc(testDoc, {
+                    timestamp: serverTimestamp(),
+                    test: 'connection_test'
+                });
+                console.log('✅ Firestore write test successful');
+                
+                // Test read operation
+                const testRead = await getDoc(testDoc);
+                if (testRead.exists()) {
+                    console.log('✅ Firestore read test successful:', testRead.data());
+                } else {
+                    console.log('⚠️ Firestore read test: document not found');
+                }
+                
+                console.log('✅ Firestore connection test completed successfully');
+            } catch (error) {
+                console.error('❌ Firestore connection test failed:', error);
+                throw error;
             }
         }
 
@@ -1086,6 +1150,8 @@
         // The full, correct code is in the script.
         
         async function initApp() {
+            console.log('🚀 Starting app initialization...');
+            
             // FIXED: Moved all element lookups inside initApp to run after DOM is loaded
             const landingPageContainer = document.getElementById('landing-page-container');
             const registerPage = document.getElementById('register-page');
@@ -1117,31 +1183,44 @@
             const feedbackTextarea = document.getElementById('feedback-textarea');
 
             try {
+                console.log('🔐 Attempting Firebase authentication...');
                 await signInAnonymously(auth);
-                console.log("Signed in anonymously to access Firestore.");
+                console.log("✅ Signed in anonymously to access Firestore.");
 
+                // Test Firestore connection
+                console.log('🔗 Testing Firestore connection...');
+                await testFirestoreConnection();
+
+                console.log('🌐 Setting language to Chinese...');
                 switchLanguage('zh');
 
+                console.log('⚙️ Fetching app settings...');
                 await fetchSettings();
                 
+                console.log('👂 Setting up real-time settings listener...');
                 // Set up real-time settings listener
                 setupSettingsListener();
 
+                console.log('🔍 Checking URL parameters...');
                 const urlParams = new URLSearchParams(window.location.search);
                 const source = urlParams.get('source');
 
                 if (source === 'qrcode') {
+                    console.log('📱 QR code source detected, showing registration page');
                     landingPageContainer.classList.add('hidden');
                     registerPage.classList.remove('hidden');
                 } else {
+                    console.log('🏠 Default source, showing landing page');
                     landingPageContainer.classList.remove('hidden');
                     registerPage.classList.add('hidden');
                 }
                
+                console.log('✨ Creating visual effects...');
                 createParticles();
                 populateCountryCodes();
                 drawWheel();
                 
+                console.log('🎯 Setting up event listeners...');
                 registerForm.addEventListener('submit', handleRegistration);
                 spinBtn.addEventListener('click', spin);
                 modalCloseBtn.addEventListener('click', () => resultModal.classList.add('hidden'));
@@ -1172,9 +1251,17 @@
                     }
                 });
 
+                console.log('🎉 App initialization completed successfully!');
+
             } catch (error) {
-                console.error("Firebase Initialization Error:", error);
-                document.getElementById('app').innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p></div>`;
+                console.error("❌ Firebase Initialization Error:", error);
+                console.error("Error details:", {
+                    name: error.name,
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                document.getElementById('app').innerHTML = `<div class="text-center p-4 bg-red-900 text-white rounded-lg"><h2 class="text-xl font-bold">Connection Error</h2><p>Could not connect to the lucky draw service. Please try again later.</p><p class="text-sm mt-2">Error: ${error.message}</p></div>`;
             }
         }
 

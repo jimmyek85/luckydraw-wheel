@@ -1,0 +1,46 @@
+[debug] [2025-07-28T11:20:28.984Z] ----------------------------------------------------------------------
+[debug] [2025-07-28T11:20:28.987Z] Command:       C:\Users\user\node.exe C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js serve --host 0.0.0.0 --port 5003
+[debug] [2025-07-28T11:20:28.987Z] CLI Version:   14.11.1
+[debug] [2025-07-28T11:20:28.987Z] Platform:      win32
+[debug] [2025-07-28T11:20:28.987Z] Node Version:  v22.17.1
+[debug] [2025-07-28T11:20:28.987Z] Time:          Mon Jul 28 2025 19:20:28 GMT+0800 (Singapore Standard Time)
+[debug] [2025-07-28T11:20:28.987Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-28T11:20:29.119Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-28T11:20:29.120Z] > authorizing via signed-in user (jimmyek85@gmail.com)
+[debug] [2025-07-28T11:20:29.120Z] [iam] checking project deductive-smile-408711 for permissions ["firebase.projects.get"]
+[debug] [2025-07-28T11:20:29.121Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:29.121Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:29.121Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions [none]
+[debug] [2025-07-28T11:20:29.121Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions x-goog-quota-user=projects/deductive-smile-408711
+[debug] [2025-07-28T11:20:29.121Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-28T11:20:30.402Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions 200
+[debug] [2025-07-28T11:20:30.402Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-28T11:20:30.402Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:30.403Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:30.403Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 [none]
+[debug] [2025-07-28T11:20:30.692Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 200
+[debug] [2025-07-28T11:20:30.692Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 {"projectNumber":"209601875553","projectId":"deductive-smile-408711","lifecycleState":"ACTIVE","name":"LuckyDraw","labels":{"firebase":"enabled","firebase-core":"disabled","generative-language":"enabled"},"createTime":"2023-12-20T11:51:25.313478Z"}
+[info] 
+[info] === Serving from 'C:\Users\user\luckydraw-wheel\luckydraw-wheel'...
+[info] 
+[debug] [2025-07-28T11:20:30.694Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:30.694Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:30.694Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites 
+[debug] [2025-07-28T11:20:31.592Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites 200
+[debug] [2025-07-28T11:20:31.592Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites {"sites":[{"name":"projects/deductive-smile-408711/sites/deductive-smile-408711","defaultUrl":"https://deductive-smile-408711.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2025-07-28T11:20:31.592Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:31.592Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:31.592Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config [none]
+[debug] [2025-07-28T11:20:33.284Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config 200
+[debug] [2025-07-28T11:20:33.284Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config {"projectId":"deductive-smile-408711","appId":"1:209601875553:web:d4a9175622134295c06420","databaseURL":"https://deductive-smile-408711-default-rtdb.asia-southeast1.firebasedatabase.app","storageBucket":"deductive-smile-408711.firebasestorage.app","apiKey":"AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY","authDomain":"deductive-smile-408711.firebaseapp.com","messagingSenderId":"209601875553","measurementId":"G-R222P71DDD"}
+[debug] [2025-07-28T11:20:33.289Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:33.290Z] Checked if tokens are valid: true, expires at: 1753702834975
+[debug] [2025-07-28T11:20:33.290Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 [none]
+[debug] [2025-07-28T11:20:33.625Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 200
+[debug] [2025-07-28T11:20:33.625Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 {"projectId":"deductive-smile-408711","projectNumber":"209601875553","displayName":"LuckyDraw","name":"projects/deductive-smile-408711","resources":{"hostingSite":"deductive-smile-408711","realtimeDatabaseInstance":"deductive-smile-408711-default-rtdb"},"state":"ACTIVE","etag":"1_d911bbc1-3245-4f8e-96d2-9838c6098378"}
+[info] +  hosting[deductive-smile-408711]: Local server: http://0.0.0.0:5003 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://0.0.0.0:5003\u001b[22m\u001b[24m"}}
+[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:20:36 +0000] "GET /?ide_webview_request_time=1753701636715 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:20:36 +0000] \"GET /?ide_webview_request_time=1753701636715 HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
+[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:20:36 +0000] "GET /@vite/client HTTP/1.1" 200 - "http://127.0.0.1:5003/?ide_webview_request_time=1753701636715" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:20:36 +0000] \"GET /@vite/client HTTP/1.1\" 200 - \"http://127.0.0.1:5003/?ide_webview_request_time=1753701636715\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
+[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:20:41 +0000] "GET /?ide_webview_request_time=1753701641618 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:20:41 +0000] \"GET /?ide_webview_request_time=1753701641618 HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
+[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:20:41 +0000] "GET /@vite/client HTTP/1.1" 304 - "http://127.0.0.1:5003/?ide_webview_request_time=1753701641618" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:20:41 +0000] \"GET /@vite/client HTTP/1.1\" 304 - \"http://127.0.0.1:5003/?ide_webview_request_time=1753701641618\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
