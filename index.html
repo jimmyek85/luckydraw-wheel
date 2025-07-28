@@ -142,6 +142,70 @@
 
         // Global variables
         let currentUser = null;
+        let useLocalStorage = false;
+
+        // Local storage fallback functions
+        function saveToLocalStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function getFromLocalStorage(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // Enhanced Firebase operations with fallback
+        async function saveUserData(userId, userData) {
+            try {
+                if (useLocalStorage) {
+                    saveToLocalStorage(`user_${userId}`, userData);
+                    return;
+                }
+                
+                const userRef = doc(db, 'users', userId);
+                await setDoc(userRef, userData);
+            } catch (error) {
+                console.warn('Firebase save failed, using local storage:', error);
+                useLocalStorage = true;
+                saveToLocalStorage(`user_${userId}`, userData);
+            }
+        }
+
+        async function getUserData(userId) {
+            try {
+                if (useLocalStorage) {
+                    return getFromLocalStorage(`user_${userId}`);
+                }
+                
+                const userRef = doc(db, 'users', userId);
+                const userDoc = await getDoc(userRef);
+                return userDoc.exists() ? userDoc.data() : null;
+            } catch (error) {
+                console.warn('Firebase get failed, using local storage:', error);
+                useLocalStorage = true;
+                return getFromLocalStorage(`user_${userId}`);
+            }
+        }
+
+        async function updateUserData(userId, updates) {
+            try {
+                if (useLocalStorage) {
+                    const existing = getFromLocalStorage(`user_${userId}`) || {};
+                    const updated = { ...existing, ...updates };
+                    saveToLocalStorage(`user_${userId}`, updated);
+                    return;
+                }
+                
+                const userRef = doc(db, 'users', userId);
+                await updateDoc(userRef, updates);
+            } catch (error) {
+                console.warn('Firebase update failed, using local storage:', error);
+                useLocalStorage = true;
+                const existing = getFromLocalStorage(`user_${userId}`) || {};
+                const updated = { ...existing, ...updates };
+                saveToLocalStorage(`user_${userId}`, updated);
+            }
+        }
 
         // Prize data
         const prizes = [
@@ -235,20 +299,26 @@
                      // Update user data
                      if (currentUser) {
                          const now = new Date();
+                         const newPrize = {
+                             prize: prize,
+                             timestamp: now.toISOString()
+                         };
+                         
                          const updates = {
-                             lastSpin: serverTimestamp(),
-                             prizes: arrayUnion({
-                                 prize: prize,
-                                 timestamp: now
-                             })
+                             lastSpin: now.toISOString(),
+                             prizes: [...(currentUser.prizes || []), newPrize]
                          };
                          
                          if (prize !== '再来一次！') {
                              updates.chances = Math.max(0, chancesLeft - 1);
                              document.getElementById('chances-left').textContent = updates.chances;
+                             currentUser.chances = updates.chances;
                          }
                          
-                         await updateDoc(doc(db, 'users', currentUser.id), updates);
+                         currentUser.prizes = updates.prizes;
+                         currentUser.lastSpin = updates.lastSpin;
+                         
+                         await updateUserData(currentUser.id, updates);
                      }
                     
                     showResult(prize);
@@ -275,24 +345,23 @@
             }
             
             try {
-                const userRef = doc(db, 'users', phone);
-                const userDoc = await getDoc(userRef);
+                const userData = await getUserData(phone);
                 
-                if (userDoc.exists()) {
-                    currentUser = { id: phone, ...userDoc.data() };
+                if (userData) {
+                    currentUser = { id: phone, ...userData };
                     alert('用户已存在，正在加载您的数据...');
                 } else {
-                    const userData = {
+                    const newUserData = {
                         name: name,
                         phone: phone,
                         email: email,
                         chances: 1,
                         prizes: [],
-                        createdAt: serverTimestamp()
+                        createdAt: new Date().toISOString()
                     };
                     
-                    await setDoc(userRef, userData);
-                    currentUser = { id: phone, ...userData };
+                    await saveUserData(phone, newUserData);
+                    currentUser = { id: phone, ...newUserData };
                     alert('注册成功！');
                 }
                 

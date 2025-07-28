@@ -1,46 +1,42 @@
-[debug] [2025-07-28T11:33:22.600Z] ----------------------------------------------------------------------
-[debug] [2025-07-28T11:33:22.603Z] Command:       C:\Users\user\node.exe C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js serve --host 0.0.0.0 --port 5003
-[debug] [2025-07-28T11:33:22.603Z] CLI Version:   14.11.1
-[debug] [2025-07-28T11:33:22.603Z] Platform:      win32
-[debug] [2025-07-28T11:33:22.603Z] Node Version:  v22.17.1
-[debug] [2025-07-28T11:33:22.603Z] Time:          Mon Jul 28 2025 19:33:22 GMT+0800 (Singapore Standard Time)
-[debug] [2025-07-28T11:33:22.603Z] ----------------------------------------------------------------------
+[debug] [2025-07-28T11:42:11.065Z] ----------------------------------------------------------------------
+[debug] [2025-07-28T11:42:11.067Z] Command:       C:\Users\user\node.exe C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js serve --port 5003
+[debug] [2025-07-28T11:42:11.067Z] CLI Version:   14.11.1
+[debug] [2025-07-28T11:42:11.068Z] Platform:      win32
+[debug] [2025-07-28T11:42:11.068Z] Node Version:  v22.17.1
+[debug] [2025-07-28T11:42:11.068Z] Time:          Mon Jul 28 2025 19:42:11 GMT+0800 (Singapore Standard Time)
+[debug] [2025-07-28T11:42:11.068Z] ----------------------------------------------------------------------
 [debug] 
-[debug] [2025-07-28T11:33:22.728Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2025-07-28T11:33:22.728Z] > authorizing via signed-in user (jimmyek85@gmail.com)
-[debug] [2025-07-28T11:33:22.728Z] [iam] checking project deductive-smile-408711 for permissions ["firebase.projects.get"]
-[debug] [2025-07-28T11:33:22.729Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:22.729Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:22.730Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions [none]
-[debug] [2025-07-28T11:33:22.730Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions x-goog-quota-user=projects/deductive-smile-408711
-[debug] [2025-07-28T11:33:22.730Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions {"permissions":["firebase.projects.get"]}
-[debug] [2025-07-28T11:33:23.948Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions 200
-[debug] [2025-07-28T11:33:23.948Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions {"permissions":["firebase.projects.get"]}
-[debug] [2025-07-28T11:33:23.949Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:23.949Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:23.949Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 [none]
-[debug] [2025-07-28T11:33:24.259Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 200
-[debug] [2025-07-28T11:33:24.259Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 {"projectNumber":"209601875553","projectId":"deductive-smile-408711","lifecycleState":"ACTIVE","name":"LuckyDraw","labels":{"firebase":"enabled","firebase-core":"disabled","generative-language":"enabled"},"createTime":"2023-12-20T11:51:25.313478Z"}
+[debug] [2025-07-28T11:42:11.190Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-28T11:42:11.190Z] > authorizing via signed-in user (jimmyek85@gmail.com)
+[debug] [2025-07-28T11:42:11.190Z] [iam] checking project deductive-smile-408711 for permissions ["firebase.projects.get"]
+[debug] [2025-07-28T11:42:11.191Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:11.191Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:11.192Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions [none]
+[debug] [2025-07-28T11:42:11.192Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions x-goog-quota-user=projects/deductive-smile-408711
+[debug] [2025-07-28T11:42:11.192Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-28T11:42:12.498Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions 200
+[debug] [2025-07-28T11:42:12.498Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-07-28T11:42:12.499Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:12.499Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:12.499Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 [none]
+[debug] [2025-07-28T11:42:12.784Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 200
+[debug] [2025-07-28T11:42:12.784Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/deductive-smile-408711 {"projectNumber":"209601875553","projectId":"deductive-smile-408711","lifecycleState":"ACTIVE","name":"LuckyDraw","labels":{"firebase":"enabled","firebase-core":"disabled","generative-language":"enabled"},"createTime":"2023-12-20T11:51:25.313478Z"}
 [info] 
 [info] === Serving from 'C:\Users\user\luckydraw-wheel\luckydraw-wheel'...
 [info] 
-[debug] [2025-07-28T11:33:24.262Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:24.262Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:24.262Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites 
-[debug] [2025-07-28T11:33:25.246Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites 200
-[debug] [2025-07-28T11:33:25.246Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites {"sites":[{"name":"projects/deductive-smile-408711/sites/deductive-smile-408711","defaultUrl":"https://deductive-smile-408711.web.app","type":"DEFAULT_SITE"}]}
-[debug] [2025-07-28T11:33:25.246Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:25.246Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:25.246Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config [none]
-[debug] [2025-07-28T11:33:26.578Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config 200
-[debug] [2025-07-28T11:33:26.579Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config {"projectId":"deductive-smile-408711","appId":"1:209601875553:web:d4a9175622134295c06420","databaseURL":"https://deductive-smile-408711-default-rtdb.asia-southeast1.firebasedatabase.app","storageBucket":"deductive-smile-408711.firebasestorage.app","apiKey":"AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY","authDomain":"deductive-smile-408711.firebaseapp.com","messagingSenderId":"209601875553","measurementId":"G-R222P71DDD"}
-[debug] [2025-07-28T11:33:26.582Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:26.582Z] Checked if tokens are valid: true, expires at: 1753705553108
-[debug] [2025-07-28T11:33:26.583Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 [none]
-[debug] [2025-07-28T11:33:26.896Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 200
-[debug] [2025-07-28T11:33:26.896Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 {"projectId":"deductive-smile-408711","projectNumber":"209601875553","displayName":"LuckyDraw","name":"projects/deductive-smile-408711","resources":{"hostingSite":"deductive-smile-408711","realtimeDatabaseInstance":"deductive-smile-408711-default-rtdb"},"state":"ACTIVE","etag":"1_d911bbc1-3245-4f8e-96d2-9838c6098378"}
-[info] +  hosting[deductive-smile-408711]: Local server: http://0.0.0.0:5003 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://0.0.0.0:5003\u001b[22m\u001b[24m"}}
-[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:33:28 +0000] "GET /?ide_webview_request_time=1753702408622 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:33:28 +0000] \"GET /?ide_webview_request_time=1753702408622 HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
-[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:33:28 +0000] "GET /@vite/client HTTP/1.1" 200 - "http://127.0.0.1:5003/?ide_webview_request_time=1753702408622" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:33:28 +0000] \"GET /@vite/client HTTP/1.1\" 200 - \"http://127.0.0.1:5003/?ide_webview_request_time=1753702408622\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
-[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:33:38 +0000] "GET /?ide_webview_request_time=1753702418982 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:33:38 +0000] \"GET /?ide_webview_request_time=1753702418982 HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
-[info] i  hosting: 127.0.0.1 - - [28/Jul/2025:11:33:39 +0000] "GET /@vite/client HTTP/1.1" 304 - "http://127.0.0.1:5003/?ide_webview_request_time=1753702418982" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"127.0.0.1 - - [28/Jul/2025:11:33:39 +0000] \"GET /@vite/client HTTP/1.1\" 304 - \"http://127.0.0.1:5003/?ide_webview_request_time=1753702418982\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36\""}}
+[debug] [2025-07-28T11:42:12.786Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:12.786Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:12.786Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites 
+[debug] [2025-07-28T11:42:13.814Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites 200
+[debug] [2025-07-28T11:42:13.814Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/deductive-smile-408711/sites {"sites":[{"name":"projects/deductive-smile-408711/sites/deductive-smile-408711","defaultUrl":"https://deductive-smile-408711.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2025-07-28T11:42:13.814Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:13.814Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:13.815Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config [none]
+[debug] [2025-07-28T11:42:14.794Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config 200
+[debug] [2025-07-28T11:42:14.794Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711/webApps/-/config {"projectId":"deductive-smile-408711","appId":"1:209601875553:web:d4a9175622134295c06420","databaseURL":"https://deductive-smile-408711-default-rtdb.asia-southeast1.firebasedatabase.app","storageBucket":"deductive-smile-408711.firebasestorage.app","apiKey":"AIzaSyDR9ApYQZbHJpbs3hSiY1wdGjSOIxWpZIY","authDomain":"deductive-smile-408711.firebaseapp.com","messagingSenderId":"209601875553","measurementId":"G-R222P71DDD"}
+[debug] [2025-07-28T11:42:14.798Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:14.798Z] Checked if tokens are valid: true, expires at: 1753705553108
+[debug] [2025-07-28T11:42:14.798Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 [none]
+[debug] [2025-07-28T11:42:15.128Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 200
+[debug] [2025-07-28T11:42:15.128Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/deductive-smile-408711 {"projectId":"deductive-smile-408711","projectNumber":"209601875553","displayName":"LuckyDraw","name":"projects/deductive-smile-408711","resources":{"hostingSite":"deductive-smile-408711","realtimeDatabaseInstance":"deductive-smile-408711-default-rtdb"},"state":"ACTIVE","etag":"1_d911bbc1-3245-4f8e-96d2-9838c6098378"}
+[info] +  hosting[deductive-smile-408711]: Local server: http://localhost:5004 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:5004\u001b[22m\u001b[24m"}}
