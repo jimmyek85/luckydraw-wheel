@@ -80,9 +80,49 @@
             z-index: -1;
         }
         
+        .neon-ring.spinning {
+            animation: neonGlow 2s ease-in-out infinite alternate, rotateNeon 8s linear infinite, neonFlash 0.3s ease-in-out infinite;
+        }
+        
         @keyframes neonGlow {
-            0% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.8); }
-            100% { box-shadow: 0 0 40px rgba(78, 205, 196, 0.8), 0 0 60px rgba(69, 183, 209, 0.6); }
+            0% { 
+                box-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 
+                           0 0 30px rgba(255, 107, 107, 0.6),
+                           0 0 40px rgba(255, 107, 107, 0.4); 
+            }
+            100% { 
+                box-shadow: 0 0 40px rgba(78, 205, 196, 0.8), 
+                           0 0 60px rgba(69, 183, 209, 0.6),
+                           0 0 80px rgba(150, 206, 180, 0.4); 
+            }
+        }
+        
+        @keyframes neonFlash {
+            0% { 
+                box-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 
+                           0 0 30px rgba(255, 107, 107, 0.6),
+                           0 0 40px rgba(255, 107, 107, 0.4); 
+            }
+            25% { 
+                box-shadow: 0 0 60px rgba(78, 205, 196, 1), 
+                           0 0 80px rgba(69, 183, 209, 0.8),
+                           0 0 100px rgba(150, 206, 180, 0.6); 
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(255, 234, 167, 1), 
+                           0 0 60px rgba(255, 234, 167, 0.8),
+                           0 0 80px rgba(255, 234, 167, 0.6); 
+            }
+            75% { 
+                box-shadow: 0 0 60px rgba(221, 160, 221, 1), 
+                           0 0 80px rgba(221, 160, 221, 0.8),
+                           0 0 100px rgba(221, 160, 221, 0.6); 
+            }
+            100% { 
+                box-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 
+                           0 0 30px rgba(255, 107, 107, 0.6),
+                           0 0 40px rgba(255, 107, 107, 0.4); 
+            }
         }
         
         @keyframes rotateNeon {
@@ -296,17 +336,17 @@
     <script>
         // Prize data with exact probabilities as requested
         const prizes = [
-            { text: 'Beer Card', textZh: '酒卡', color: '#FF6B6B', weight: 0 }, // 0/100
-            { text: 'RM5 Cash Voucher', textZh: '现金券RM5', color: '#4ECDC4', weight: 16 }, // 16/100
-            { text: 'RM10 Online Voucher', textZh: '线上现金券RM10', color: '#45B7D1', weight: 9 }, // 9/100
-            { text: 'RM20 Online Voucher', textZh: '线上现金券RM20', color: '#96CEB4', weight: 6 }, // 6/100
-            { text: '330ml Lager Smooth', textZh: '330ml新品Lager', color: '#FFEAA7', weight: 9 }, // 9/100
-            { text: '660ml Bottle', textZh: '660ml瓶装', color: '#DDA0DD', weight: 6 }, // 6/100
-            { text: '1602 Pen', textZh: '1602纪念笔', color: '#FF8E8E', weight: 12 }, // 12/100
-            { text: '1602 Cooler Bag', textZh: '1602保冷袋', color: '#8ED1FC', weight: 12 }, // 12/100
-            { text: '1602 Mug', textZh: '1602纪念陶瓷杯', color: '#C7ECEE', weight: 0 }, // 0/100
-            { text: 'Thank You', textZh: '谢谢参与', color: '#FFB6C1', weight: 14 }, // 14/100
-            { text: 'Spin Again', textZh: '再来一次', color: '#98FB98', weight: 16 } // 16/100
+            { id: 1, text: 'Beer Card', textZh: '酒卡', color: '#FF6B6B', weight: 0 }, // 0/100
+            { id: 2, text: 'Cash Voucher RM5', textZh: '现金券RM5', color: '#4ECDC4', weight: 16 }, // 16/100
+            { id: 3, text: 'Online Voucher RM10', textZh: '线上现金券RM10', color: '#45B7D1', weight: 9 }, // 9/100
+            { id: 4, text: 'Online Voucher RM20', textZh: '线上现金券RM20', color: '#96CEB4', weight: 6 }, // 6/100
+            { id: 5, text: '330ml Lager Smooth', textZh: '330ml新品Lager', color: '#FFEAA7', weight: 9 }, // 9/100
+            { id: 6, text: '660ml Bottle', textZh: '660ml瓶装', color: '#DDA0DD', weight: 6 }, // 6/100
+            { id: 7, text: '1602 Pen', textZh: '1602纪念笔', color: '#FF8E8E', weight: 12 }, // 12/100
+            { id: 8, text: '1602 Cooler Bag', textZh: '1602保冷袋', color: '#8ED1FC', weight: 12 }, // 12/100
+            { id: 9, text: '1602 Mug', textZh: '1602纪念陶瓷杯', color: '#C7ECEE', weight: 0 }, // 0/100
+            { id: 10, text: 'Thank You', textZh: '谢谢参与', color: '#FFB6C1', weight: 14 }, // 14/100
+            { id: 11, text: 'Spin Again', textZh: '再来一次', color: '#98FB98', weight: 16 } // 16/100
         ];
 
         // Global variables
@@ -461,6 +501,7 @@
             const spinBtn = document.getElementById('spin-btn');
             const wheel = document.getElementById('wheel');
             const chancesLeftEl = document.getElementById('chances-left');
+            const neonRing = document.querySelector('.neon-ring');
             
             if (!spinBtn || !wheel || !chancesLeftEl) {
                 console.error('Required elements not found for spinning');
@@ -479,11 +520,21 @@
             spinBtn.disabled = true;
             spinBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${currentLanguage === 'en' ? 'Spinning...' : '抽奖中...'}`;
             
+            // Add neon flashing effect during spin
+            if (neonRing) {
+                neonRing.classList.add('spinning');
+            }
+            
             // Spin animation
             const randomRotation = Math.random() * 360 + 1440; // At least 4 full rotations
             wheel.style.transform = `rotate(${randomRotation}deg)`;
             
             setTimeout(async () => {
+                // Remove neon flashing effect after spin
+                if (neonRing) {
+                    neonRing.classList.remove('spinning');
+                }
+                
                 const prize = selectPrize();
                 
                 try {
@@ -627,10 +678,24 @@
         // Admin functions
         function toggleAdmin() {
             const panel = document.getElementById('admin-panel');
-            if (panel) {
-                panel.classList.toggle('hidden');
-            } else {
+            if (!panel) {
                 console.error('Admin panel element not found');
+                return;
+            }
+            
+            // If panel is hidden, show password prompt
+            if (panel.classList.contains('hidden')) {
+                const password = prompt(currentLanguage === 'en' ? 'Enter admin password:' : '请输入管理员密码：');
+                
+                if (password === '1602198588') {
+                    panel.classList.remove('hidden');
+                    alert(currentLanguage === 'en' ? 'Admin access granted' : '管理员权限已授予');
+                } else if (password !== null) { // User didn't cancel
+                    alert(currentLanguage === 'en' ? 'Incorrect password' : '密码错误');
+                }
+            } else {
+                // If panel is visible, hide it
+                panel.classList.add('hidden');
             }
         }
 
@@ -766,10 +831,7 @@
                 if (findUserBtn) findUserBtn.addEventListener('click', findUser);
                 if (addChanceBtn) addChanceBtn.addEventListener('click', addChance);
                 if (toggleAdminBtn) {
-                    toggleAdminBtn.addEventListener('click', () => {
-                        const adminPanel = document.getElementById('admin-panel');
-                        if (adminPanel) adminPanel.classList.add('hidden');
-                    });
+                    toggleAdminBtn.addEventListener('click', toggleAdmin);
                 }
                 
                 // Language update
